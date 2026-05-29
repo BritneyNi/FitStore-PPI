@@ -311,28 +311,62 @@ async function cargarAdmin() {
     cont.innerHTML = `<p class="empty-msg">Acceso denegado.</p>`; return;
   }
   try {
-    const productos = await get("/admin/productos");
+    const [productos, pedidos] = await Promise.all([
+      get("/admin/productos"),
+      get("/admin/pedidos")
+    ]);
+
     cont.innerHTML = `
-      <h3 class="admin-subtitle">Gestión de Inventario</h3>
-      <table class="admin-tabla">
-        <thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Acción</th></tr></thead>
-        <tbody>
-          ${productos.map(p => `
-            <tr class="${p.stock === 0 ? 'fila-agotado' : p.stock <= 5 ? 'fila-alerta' : ''}">
-              <td>${p.emoji || '📦'} ${p.nombre}</td>
-              <td>${p.categoria}</td>
-              <td>$${formatPrecio(p.precio)}</td>
-              <td><input type="number" class="input-stock" value="${p.stock}" min="0" id="stock-${p.id}"></td>
-              <td><span class="stock-badge ${p.stock === 0 ? 'sin-stock' : p.stock <= 5 ? 'poco-stock' : 'en-stock'}">
-                ${p.stock === 0 ? 'Agotado' : p.stock <= 5 ? 'Bajo stock' : 'OK'}
-              </span></td>
-              <td><button class="btn-guardar" onclick="actualizarStock(${p.id})">Guardar</button></td>
-            </tr>
-          `).join("")}
-        </tbody>
-      </table>`;
+      <div class="admin-section">
+        <h3 class="admin-subtitle">📦 Gestión de Inventario</h3>
+        <table class="admin-tabla">
+          <thead><tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Acción</th></tr></thead>
+          <tbody>
+            ${productos.map(p => `
+              <tr class="${p.stock === 0 ? 'fila-agotado' : p.stock <= 5 ? 'fila-alerta' : ''}">
+                <td>${p.emoji || '📦'} ${p.nombre}</td>
+                <td>${p.categoria}</td>
+                <td>$${formatPrecio(p.precio)}</td>
+                <td><input type="number" class="input-stock" value="${p.stock}" min="0" id="stock-${p.id}"></td>
+                <td><span class="stock-badge ${p.stock === 0 ? 'sin-stock' : p.stock <= 5 ? 'poco-stock' : 'en-stock'}">
+                  ${p.stock === 0 ? 'Agotado' : p.stock <= 5 ? 'Bajo stock' : 'OK'}
+                </span></td>
+                <td><button class="btn-guardar" onclick="actualizarStock(${p.id})">Guardar</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="admin-section">
+        <h3 class="admin-subtitle">📋 Gestión de Pedidos</h3>
+        <table class="admin-tabla">
+          <thead><tr><th>Pedido ID</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <tbody>
+            ${(pedidos || []).map(p => `
+              <tr>
+                <td><strong>#${p.id}</strong></td>
+                <td>${p.cliente?.nombre || p.clienteNombre || 'N/A'}</td>
+                <td>$${formatPrecio(p.total)}</td>
+                <td><span class="pedido-estado estado-${p.estado?.toLowerCase().replace("_","-")}">${p.estado}</span></td>
+                <td>${p.fecha?.split("T")[0] || ""}</td>
+                <td>
+                  <select class="select-estado" id="estado-${p.id}">
+                    <option value="CONFIRMADO" ${p.estado === 'CONFIRMADO' ? 'selected' : ''}>Confirmado</option>
+                    <option value="EN_CAMINO" ${p.estado === 'EN_CAMINO' ? 'selected' : ''}>En camino</option>
+                    <option value="ENTREGADO" ${p.estado === 'ENTREGADO' ? 'selected' : ''}>Entregado</option>
+                    <option value="CANCELADO" ${p.estado === 'CANCELADO' ? 'selected' : ''}>Cancelado</option>
+                  </select>
+                  <button class="btn-guardar" onclick="actualizarEstadoPedido(${p.id})">Actualizar</button>
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
   } catch (e) {
-    cont.innerHTML = `<p class="empty-msg">⚠️ Error cargando admin.</p>`;
+    cont.innerHTML = `<p class="empty-msg">⚠️ Error cargando admin: ${e.message}</p>`;
   }
 }
 
@@ -342,6 +376,17 @@ async function actualizarStock(id) {
   try {
     await patch("/admin/productos/" + id + "/stock", { stock: val });
     mostrarToast("✅ Stock actualizado.");
+    cargarAdmin();
+  } catch (e) {
+    mostrarToast("❌ " + e.message);
+  }
+}
+
+async function actualizarEstadoPedido(id) {
+  const estado = document.getElementById("estado-" + id).value;
+  try {
+    await patch("/admin/pedidos/" + id + "/estado", { estado });
+    mostrarToast(`✅ Pedido #${id} actualizado a ${estado}.`);
     cargarAdmin();
   } catch (e) {
     mostrarToast("❌ " + e.message);
