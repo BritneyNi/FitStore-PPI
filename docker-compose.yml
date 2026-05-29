@@ -1,0 +1,38 @@
+version: '3.8'
+
+# ============================================================
+#  FitStore — docker-compose.yml
+#  Levanta Redis y RabbitMQ para desarrollo local
+#  Uso: docker-compose up -d
+# ============================================================
+
+services:
+
+  # ── Redis (Cache-Aside — RNF-01: stock < 1 segundo) ───────
+  redis:
+    image: redis:7-alpine
+    container_name: fitstore-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  # ── RabbitMQ (notificaciones asíncronas) ──────────────────
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: fitstore-rabbitmq
+    ports:
+      - "5672:5672"    # AMQP (Spring Boot se conecta aquí)
+      - "15672:15672"  # Panel web admin → http://localhost:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    restart: unless-stopped
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  redis_data:
+  rabbitmq_data:
