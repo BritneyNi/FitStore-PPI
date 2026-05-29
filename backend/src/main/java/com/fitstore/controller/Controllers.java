@@ -2,6 +2,7 @@ package com.fitstore.controller;
 
 import com.fitstore.entity.Pedido;
 import com.fitstore.entity.Producto;
+import com.fitstore.repository.PedidoRepository;
 import com.fitstore.service.AuthService;
 import com.fitstore.service.OrderService;
 import com.fitstore.service.ProductoService;
@@ -66,7 +67,6 @@ class ProductoController {
         return ResponseEntity.ok(productoService.obtenerPorId(id));
     }
 
-    // RF-02: verificar disponibilidad de stock (RNF-01: < 1 segundo)
     @GetMapping("/{id}/stock")
     public ResponseEntity<Map<String, Object>> verificarStock(
             @PathVariable Long id,
@@ -90,7 +90,6 @@ class PedidoController {
 
     private final OrderService orderService;
 
-    // RF-03: confirmar compra — requiere JWT
     @PostMapping
     public ResponseEntity<Pedido> confirmar(
             @RequestBody Map<String, Object> body,
@@ -118,10 +117,10 @@ class PedidoController {
 @PreAuthorize("hasRole('ADMIN')")
 class AdminController {
 
-    private final ProductoService productoService;
-    private final OrderService    orderService;
+    private final ProductoService  productoService;
+    private final OrderService     orderService;
+    private final PedidoRepository pedidoRepo;
 
-    // RF-04: gestión de inventario
     @GetMapping("/productos")
     public ResponseEntity<List<Producto>> listarProductos() {
         return ResponseEntity.ok(productoService.listarTodos());
@@ -141,7 +140,7 @@ class AdminController {
 
     @GetMapping("/pedidos")
     public ResponseEntity<List<Pedido>> todosPedidos() {
-        return ResponseEntity.ok(orderService.obtenerPedidosCliente(""));
+        return ResponseEntity.ok(pedidoRepo.findAll());
     }
 
     @PatchMapping("/pedidos/{id}/estado")
