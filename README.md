@@ -9,7 +9,7 @@ Stack: HTML/CSS/JS vanilla · Spring Boot · MySQL · Redis · RabbitMQ · AWS
 
 ```
 FitStore-COMPLETO/
-├── backend/                  ← Spring Boot (Java 17)
+├── backend/                  ← Spring Boot (Java 25)
 │   ├── pom.xml               ← Dependencias Maven
 │   └── src/main/java/com/fitstore/
 │       ├── FitStoreApplication.java
@@ -44,7 +44,7 @@ FitStore-COMPLETO/
 
 | Herramienta   | Versión mínima | Descarga |
 |---------------|---------------|---------|
-| Java JDK      | 17            | https://adoptium.net |
+| Java JDK      | 25            | https://adoptium.net |
 | Maven         | 3.9+          | https://maven.apache.org |
 | MySQL         | 8.0+          | https://dev.mysql.com |
 | Docker        | 20+           | https://docker.com (para Redis y RabbitMQ) |
@@ -215,4 +215,4 @@ Internet
 | RNF-01 | Stock verificado en < 1 segundo               | ✅ Redis Cache-Aside |
 | RNF-02 | Pagos cifrados HTTPS/SSL                      | ✅ Config AWS + Spring Security |
 | RNF-03 | Control de acceso por roles                   | ✅ JWT + @PreAuthorize |
-| RNF-04 | Backend desarrollado en Java                  | ✅ Spring Boot Java 17 |
+| RNF-04 | Backend desarrollado en Java                  | ✅ Spring Boot Java 25 |

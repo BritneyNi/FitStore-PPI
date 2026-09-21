@@ -1,5 +1,6 @@
 package com.fitstore.steps;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitstore.entity.Cliente;
 import com.fitstore.entity.Pedido;
@@ -132,8 +133,7 @@ public class CompraSteps {
                     .content(json))
                     .andReturn();
             if (result.getResponse().getStatus() == 200) {
-                Map<String, Object> resp = objectMapper.readValue(
-                    result.getResponse().getContentAsByteArray(), Map.class);
+                Map<String, Object> resp = leerMapaJson(result.getResponse().getContentAsByteArray());
                 token = resp.get("token").toString();
                 tokens.put(email, token);
                 emailActual = email;
@@ -229,7 +229,7 @@ public class CompraSteps {
             int status = result.getResponse().getStatus();
 
             if (status == 200) {
-                ultimoPedido = objectMapper.readValue(result.getResponse().getContentAsByteArray(), Map.class);
+                ultimoPedido = leerMapaJson(result.getResponse().getContentAsByteArray());
                 ultimoPedidoId = ((Number) ultimoPedido.get("id")).longValue();
                 ultimoError = null;
                 carrito.clear();
@@ -296,7 +296,16 @@ public class CompraSteps {
 
     private List<Map<String, Object>> leerLista(String url) throws Exception {
         MvcResult result = mockMvc.perform(get(url)).andReturn();
-        return objectMapper.readValue(result.getResponse().getContentAsByteArray(),
+        return leerListaJson(result.getResponse().getContentAsByteArray());
+    }
+
+    private Map<String, Object> leerMapaJson(byte[] bytes) throws Exception {
+        return objectMapper.readValue(bytes,
+            objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
+    }
+
+    private List<Map<String, Object>> leerListaJson(byte[] bytes) throws Exception {
+        return objectMapper.readValue(bytes,
             objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
     }
 
@@ -307,7 +316,7 @@ public class CompraSteps {
 
     private void consultarStockProducto(Long id) throws Exception {
         MvcResult result = mockMvc.perform(get("/api/productos/{id}", id)).andReturn();
-        ultimoProducto = objectMapper.readValue(result.getResponse().getContentAsByteArray(), Map.class);
+        ultimoProducto = leerMapaJson(result.getResponse().getContentAsByteArray());
         ultimoStockConsultado = ((Number) ultimoProducto.get("stock")).intValue();
     }
 
@@ -556,7 +565,7 @@ public class CompraSteps {
         MvcResult result = mockMvc.perform(get("/api/productos/{id}/stock", id)
                 .param("cantidad", String.valueOf(cantidad)))
                 .andReturn();
-        ultimaRespuestaStock = objectMapper.readValue(result.getResponse().getContentAsByteArray(), Map.class);
+        ultimaRespuestaStock = leerMapaJson(result.getResponse().getContentAsByteArray());
     }
 
     @Entonces("recibo respuesta: disponible=true")
@@ -825,7 +834,7 @@ public class CompraSteps {
                 .content(json))
                 .andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
-        ultimoPedido = objectMapper.readValue(result.getResponse().getContentAsByteArray(), Map.class);
+        ultimoPedido = leerMapaJson(result.getResponse().getContentAsByteArray());
     }
 
     @Cuando("cambio el estado a {string}")
