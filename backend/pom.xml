@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.2.5</version>
+    <version>3.5.7</version>
     <relativePath/>
   </parent>
 
@@ -19,9 +19,11 @@
   <description>API REST para FitStore — Tienda Online de Gym</description>
 
   <properties>
-    <java.version>25</java.version>
+    <java.version>22</java.version>
     <jjwt.version>0.11.5</jjwt.version>
     <lombok.version>1.18.38</lombok.version>
+    <mockito.version>5.23.0</mockito.version>
+    <byte-buddy.version>1.18.14-jdk5</byte-buddy.version>
   </properties>
 
   <dependencies>
@@ -100,6 +102,30 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <version>${byte-buddy.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy-agent</artifactId>
+      <version>${byte-buddy.version}</version>
+      <scope>test</scope>
+    </dependency>
 
     <!-- Cucumber para BDD (Behavior-Driven Development) -->
     <dependency>
@@ -121,17 +147,20 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- JUnit Platform (para ejecutar Cucumber) -->
+    <!-- JUnit Platform (para ejecutar Cucumber).
+         ⚠ Alineado a 1.12.x = versión que gestiona Spring Boot 3.5.7/surefire 3.5.4.
+         NO bajar a 1.10.x: surefire necesita OutputDirectoryProvider (solo 1.12+)
+         y revienta el fork con NoClassDefFoundError. -->
     <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-suite</artifactId>
-      <version>1.10.2</version>
+      <version>1.12.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-engine</artifactId>
-      <version>1.10.2</version>
+      <version>1.12.2</version>
       <scope>test</scope>
     </dependency>
 

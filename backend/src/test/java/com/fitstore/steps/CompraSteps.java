@@ -1,5 +1,4 @@
 package com.fitstore.steps;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitstore.entity.Cliente;
@@ -685,8 +684,7 @@ public class CompraSteps {
                 .header("Authorization", "Bearer " + token))
                 .andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
-        ultimosProductosAdmin = objectMapper.readValue(result.getResponse().getContentAsByteArray(),
-            objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
+        ultimosProductosAdmin = leerListaJson(result.getResponse().getContentAsByteArray());
         Assertions.assertEquals(catalogo.size(), ultimosProductosAdmin.size());
     }
 
@@ -754,8 +752,7 @@ public class CompraSteps {
     public void filtrarPorCategoria(String categoria) throws Exception {
         MvcResult result = mockMvc.perform(get("/api/productos").param("categoria", categoria)).andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
-        ultimosProductos = objectMapper.readValue(result.getResponse().getContentAsByteArray(),
-            objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
+        ultimosProductos = leerListaJson(result.getResponse().getContentAsByteArray());
     }
 
     @Entonces("solo veo productos de categoría {word}:")
@@ -778,8 +775,7 @@ public class CompraSteps {
     public void buscar(String termino) throws Exception {
         MvcResult result = mockMvc.perform(get("/api/productos").param("buscar", termino)).andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
-        ultimosProductos = objectMapper.readValue(result.getResponse().getContentAsByteArray(),
-            objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
+        ultimosProductos = leerListaJson(result.getResponse().getContentAsByteArray());
     }
 
     @Entonces("aparece el producto {string}")
@@ -849,8 +845,7 @@ public class CompraSteps {
                 .header("Authorization", "Bearer " + clientToken))
                 .andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
-        List<Map<String, Object>> pedidos = objectMapper.readValue(result.getResponse().getContentAsByteArray(),
-            objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
+        List<Map<String, Object>> pedidos = leerListaJson(result.getResponse().getContentAsByteArray());
         Map<String, Object> pedido = pedidos.stream()
             .filter(p -> ((Number) p.get("id")).longValue() == ultimoPedidoId)
             .findFirst().orElse(null);
@@ -864,8 +859,7 @@ public class CompraSteps {
         MvcResult result = mockMvc.perform(get("/api/pedidos/mis-pedidos")
                 .header("Authorization", "Bearer " + clientToken))
                 .andReturn();
-        List<Map<String, Object>> pedidos = objectMapper.readValue(result.getResponse().getContentAsByteArray(),
-            objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
+        List<Map<String, Object>> pedidos = leerListaJson(result.getResponse().getContentAsByteArray());
         boolean existe = pedidos.stream()
             .anyMatch(p -> ((Number) p.get("id")).longValue() == ultimoPedidoId);
         Assertions.assertTrue(existe, "El pedido no está en el historial");

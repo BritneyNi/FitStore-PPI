@@ -1,14 +1,15 @@
-# FitStore — Tienda Online de Productos de Gym
+﻿# FitStore — Tienda Online de Productos de Gym
+
 **Ingeniería de Software II · TdeA · Mayo 2026**
 
-Stack: HTML/CSS/JS vanilla · Spring Boot · MySQL · Redis · RabbitMQ · AWS
+Stack: HTML/CSS/JS vanilla · Spring Boot 3.5.7 · MySQL · Redis · RabbitMQ · AWS
 
 ---
 
 ## Estructura del Proyecto
 
 ```
-FitStore-COMPLETO/
+FitStore-PPI/
 ├── backend/                  ← Spring Boot (Java 25)
 │   ├── pom.xml               ← Dependencias Maven
 │   └── src/main/java/com/fitstore/
@@ -18,14 +19,13 @@ FitStore-COMPLETO/
 │       │   ├── JwtUtil.java          ← Generación/validación tokens
 │       │   ├── InfraConfig.java      ← Redis + RabbitMQ beans
 │       │   └── DataSeeder.java       ← Datos iniciales automáticos
-│       ├── controller/
-│       │   └── Controllers.java      ← /api/auth, /api/productos, /api/pedidos, /api/admin
-│       ├── entity/                   ← Producto, Cliente, Pedido, ItemPedido
-│       ├── repository/               ← JPA Repositories
+│       ├── controller/              ← Controllers (REST)
+│       ├── entity/                  ← Producto, Cliente, Pedido, ItemPedido
+│       ├── repository/              ← JPA Repositories
 │       ├── service/
-│       │   ├── AuthService.java      ← Login + Registro
-│       │   ├── ProductoService.java  ← Cache-Aside con Redis (RNF-01)
-│       │   ├── OrderService.java     ← Flujo transaccional de compra
+│       │   ├── AuthService.java     ← Login + Registro
+│       │   ├── ProductoService.java ← Cache-Aside con Redis (RNF-01)
+│       │   ├── OrderService.java    ← Flujo transaccional de compra
 │       │   └── NotificationService.java ← RabbitMQ Producer + Consumer
 │       └── exception/               ← Manejo global de errores
 ├── frontend/                 ← HTML + CSS + JS vanilla
@@ -42,12 +42,14 @@ FitStore-COMPLETO/
 
 ## Requisitos Previos
 
-| Herramienta   | Versión mínima | Descarga |
-|---------------|---------------|---------|
-| Java JDK      | 25            | https://adoptium.net |
-| Maven         | 3.9+          | https://maven.apache.org |
-| MySQL         | 8.0+          | https://dev.mysql.com |
-| Docker        | 20+           | https://docker.com (para Redis y RabbitMQ) |
+| Herramienta | Versión mínima | Descarga |
+|-------------|---------------|---------|
+| Java JDK    | 25            | https://adoptium.net |
+| Maven       | 3.9+          | https://maven.apache.org |
+| MySQL       | 8.0+          | https://dev.mysql.com |
+| Docker      | 20+           | https://docker.com (para Redis y RabbitMQ) |
+
+> El backend compila y se ejecuta con **Java 25** y **Spring Boot 3.5.7**.
 
 ---
 
@@ -61,7 +63,7 @@ docker-compose up -d
 docker ps
 ```
 
-**Panel RabbitMQ:** http://localhost:15672  
+**Panel RabbitMQ:** http://localhost:15672
 Usuario: `guest` / Contraseña: `guest`
 
 ---
@@ -103,6 +105,8 @@ cd backend
 mvn clean install -DskipTests
 mvn spring-boot:run
 ```
+
+> Si estás usando un JDK distinto, cambia a Java 25 antes de compilar o ejecutar los tests.
 
 Al iniciar, Spring Boot:
 1. Crea las tablas automáticamente en MySQL
@@ -158,10 +162,10 @@ Ejecuta:
 | GET    | /api/productos/{id}/stock?cantidad=2 | Verificar stock (Redis) — RNF-01 | No   |
 
 ### Pedidos
-| Método | Endpoint                  | Descripción               | Auth     |
-|--------|--------------------------|---------------------------|----------|
-| POST   | /api/pedidos              | Confirmar compra (ACID)   | JWT      |
-| GET    | /api/pedidos/mis-pedidos  | Historial del cliente     | JWT      |
+| Método | Endpoint                  | Descripción               | Auth |
+|--------|--------------------------|---------------------------|------|
+| POST   | /api/pedidos              | Confirmar compra (ACID)   | JWT  |
+| GET    | /api/pedidos/mis-pedidos  | Historial del cliente     | JWT  |
 
 ### Admin
 | Método | Endpoint                           | Descripción             | Auth      |
