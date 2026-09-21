@@ -85,6 +85,17 @@ public class ProductoService {
         log.info("[Cache INVALIDADO] stock:{}", idProducto);
     }
 
+    // ── Restaurar stock (cancelación de pedido) ──────────────
+
+    @Transactional
+    public void restaurarStock(Long idProducto, int cantidad) {
+        Producto p = obtenerPorId(idProducto);
+        p.setStock(p.getStock() + cantidad);
+        productoRepo.save(p);
+        redisTemplate.delete(STOCK_KEY + idProducto);
+        log.info("[Cache INVALIDADO] stock:{} (restaurado +{})", idProducto, cantidad);
+    }
+
     // ── Admin ────────────────────────────────────────────────
 
     @Transactional

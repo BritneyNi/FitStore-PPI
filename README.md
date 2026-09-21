@@ -1,7 +1,7 @@
 # FitStore — Tienda Online de Productos de Gym
 **Ingeniería de Software II · TdeA · Mayo 2026**
 
-Stack: React.js · Spring Boot · MySQL · Redis · RabbitMQ · AWS
+Stack: HTML/CSS/JS vanilla · Spring Boot · MySQL · Redis · RabbitMQ · AWS
 
 ---
 
@@ -120,6 +120,24 @@ Abrir `frontend/index.html` directamente en el navegador.
 **Credenciales de prueba:**
 - Cliente: `juan@email.com` / `clave123`
 - Admin:   `admin@fitstore.com` / `admin123`
+
+---
+
+## Pruebas Automatizadas
+
+```bash
+cd backend
+mvn test
+```
+
+Ejecuta:
+
+- **ProductoServiceTest** — pruebas unitarias del servicio de productos y caché Redis.
+- **CucumberRunner** — suite BDD (Cucumber + JUnit Platform) con los 15 escenarios de `backend/src/test/resources/features/compra.feature`: login con JWT, catálogo, filtros por categoría, búsqueda, carrito/localStorage, compra ACID, verificación de stock < 1 s (RNF-01), notificaciones asíncronas por RabbitMQ, estados de pedido (incluye restauración de stock al cancelar) y panel admin.
+
+**Requisitos:** MySQL con la BD creada, Redis y RabbitMQ arriba (`docker-compose up -d`).
+
+> Los tests usan la BD real, pero se auto-limpian: al finalizar, `TestDataRestorer` vuelve a insertar el catálogo original de 12 productos, borra pedidos/ítems y vacía la caché de Redis.
 
 ---
 

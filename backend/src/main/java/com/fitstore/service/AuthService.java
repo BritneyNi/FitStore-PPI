@@ -20,7 +20,7 @@ public class AuthService {
 
     public Map<String, String> login(String email, String clave) {
         Cliente cliente = clienteRepo.findByEmail(email)
-            .orElseThrow(() -> new FitStoreException("Credenciales inválidas"));
+            .orElseThrow(() -> new FitStoreException("Usuario no encontrado"));
 
         if (!passwordEncoder.matches(clave, cliente.getClave())) {
             throw new FitStoreException("Credenciales inválidas");

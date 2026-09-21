@@ -101,7 +101,15 @@ public class OrderService {
     public Pedido actualizarEstado(Long pedidoId, String nuevoEstado) {
         Pedido pedido = pedidoRepo.findById(pedidoId)
             .orElseThrow(() -> new FitStoreException("Pedido no encontrado: " + pedidoId));
-        pedido.setEstado(Pedido.Estado.valueOf(nuevoEstado.toUpperCase().replace(" ", "_")));
+        Pedido.Estado estado = Pedido.Estado.valueOf(nuevoEstado.toUpperCase().replace(" ", "_"));
+
+        if (estado == Pedido.Estado.CANCELADO && pedido.getEstado() != Pedido.Estado.CANCELADO) {
+            for (ItemPedido item : pedido.getItems()) {
+                productoService.restaurarStock(item.getProducto().getId(), item.getCantidad());
+            }
+        }
+
+        pedido.setEstado(estado);
         return pedidoRepo.save(pedido);
     }
 }
