@@ -17,7 +17,6 @@ import org.junit.platform.suite.api.Suite;
 @Suite
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features")
-@ConfigurationParameter(key = "cucumber.features", value = "classpath:features")
 @ConfigurationParameter(key = "cucumber.glue", value = "classpath:com.fitstore.steps")
 @ConfigurationParameter(key = "cucumber.publish.quiet", value = "true")
 public class CucumberRunner {
