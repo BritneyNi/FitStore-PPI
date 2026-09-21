@@ -25,7 +25,7 @@ public class OrderService {
     //
     // 1. Validar cliente (JWT ya verificado por el filtro)
     // 2. Verificar stock de cada item (Redis Cache-Aside)
-    // 3. Crear pedido ACID en MySQL
+    // 3. Crear pedido ACID en la base de datos
     // 4. Descontar stock y limpiar caché Redis
     // 5. Publicar evento en RabbitMQ (async — no bloquea)
     //
@@ -48,7 +48,7 @@ public class OrderService {
             }
         }
 
-        // 3. Crear pedido en MySQL con @Transactional (ACID)
+        // 3. Crear pedido en la base de datos con @Transactional (ACID)
         Pedido pedido = new Pedido();
         pedido.setCliente(cliente);
         pedido.setEstado(Pedido.Estado.CONFIRMADO);

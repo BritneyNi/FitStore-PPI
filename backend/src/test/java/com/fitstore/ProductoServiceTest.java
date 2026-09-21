@@ -61,16 +61,16 @@ class ProductoServiceTest {
 
         // Then
         assertTrue(disponible);
-        verify(productoRepo, never()).findById(any()); // No va a MySQL
+        verify(productoRepo, never()).findById(any()); // No va a la BD
     }
 
-    // ── Scenario: Cache Miss — va a MySQL (RNF-01) ───────────
+    // ── Scenario: Cache Miss — va a la base de datos (RNF-01) ─
     // Given Redis no tiene el dato
     // When verifica stock
-    // Then va a MySQL y guarda en Redis
+    // Then va a la BD y guarda en Redis
 
     @Test
-    void dadoCacheMiss_cuandoVerificaStock_entoncesVaAMySQL() {
+    void dadoCacheMiss_cuandoVerificaStock_entoncesVaALaBaseDeDatos() {
         // Given: Redis no tiene el dato
         when(redisTemplate.opsForValue()).thenReturn(valueOps);
         when(valueOps.get("stock:1")).thenReturn(null);
@@ -81,7 +81,7 @@ class ProductoServiceTest {
 
         // Then
         assertTrue(disponible);
-        verify(productoRepo, times(1)).findById(1L); // Sí va a MySQL
+        verify(productoRepo, times(1)).findById(1L); // Sí va a la BD
     }
 
     // ── Scenario: Stock insuficiente ─────────────────────────

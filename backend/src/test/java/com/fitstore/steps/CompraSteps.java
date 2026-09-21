@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.sql.Statement;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -347,25 +349,31 @@ public class CompraSteps {
         itemPedidoRepo.deleteAll();
         pedidoRepo.deleteAll();
         productoRepo.deleteAll();
-        jdbc.update("ALTER TABLE items_pedido AUTO_INCREMENT = 1");
-        jdbc.update("ALTER TABLE pedidos AUTO_INCREMENT = 1");
-        jdbc.update("ALTER TABLE productos AUTO_INCREMENT = 1");
+        jdbc.update("DBCC CHECKIDENT ('items_pedido', RESEED, 0)");
+        jdbc.update("DBCC CHECKIDENT ('pedidos', RESEED, 0)");
+        jdbc.update("DBCC CHECKIDENT ('productos', RESEED, 0)");
 
         nombreAId.clear();
         stockAlInicio.clear();
         catalogo.clear();
 
         for (Map<String, String> fila : dataTable.asMaps(String.class, String.class)) {
-            Long id = Long.parseLong(fila.get("id"));
             String nombre = fila.get("nombre");
             int stock = Integer.parseInt(fila.get("stock"));
-            jdbc.update(
-                "INSERT INTO productos (id, nombre, descripcion, precio, stock, categoria, emoji) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                id, nombre, "Producto de prueba",
-                Double.parseDouble(fila.get("precio")),
-                stock,
-                fila.get("categoría"),
-                fila.get("emoji"));
+            GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+            jdbc.update(con -> {
+                java.sql.PreparedStatement ps = con.prepareStatement(
+                    "INSERT INTO productos (nombre, descripcion, precio, stock, categoria, emoji) VALUES (?, ?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, nombre);
+                ps.setString(2, "Producto de prueba");
+                ps.setDouble(3, Double.parseDouble(fila.get("precio")));
+                ps.setInt(4, stock);
+                ps.setString(5, fila.get("categoría"));
+                ps.setString(6, fila.get("emoji"));
+                return ps;
+            }, keyHolder);
+            Long id = keyHolder.getKey().longValue();
 
             nombreAId.put(nombre, id);
             stockAlInicio.put(id, stock);
