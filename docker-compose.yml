@@ -1,5 +1,3 @@
-version: '3.8'
-
 # ============================================================
 #  FitStore — docker-compose.yml
 #  Levanta Redis y RabbitMQ para desarrollo local
@@ -13,7 +11,7 @@ services:
     image: redis:7-alpine
     container_name: fitstore-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     restart: unless-stopped
     volumes:

@@ -94,4 +94,14 @@ class ProductoServiceTest {
     void dadoStockInsuficiente_cuandoVerificaStock_entoncesRetornaNoDisponible() {
         // Given
         when(redisTemplate.opsForValue()).thenReturn(valueOps);
-        when(valueOps.get("stock:1"))
+        when(valueOps.get("stock:1")).thenReturn(2);
+
+        // When
+        boolean disponible = productoService.verificarStock(1L, 5);
+
+        // Then
+        assertFalse(disponible);
+        verify(productoRepo, never()).findById(any());
+        assertTrue(true);
+    }
+}

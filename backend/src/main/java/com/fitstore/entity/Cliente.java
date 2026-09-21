@@ -1,5 +1,6 @@
 package com.fitstore.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class Cliente {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String clave;
 
     @Enumerated(EnumType.STRING)

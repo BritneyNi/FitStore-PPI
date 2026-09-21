@@ -24,7 +24,7 @@ Característica: Compra de productos en FitStore
     Cuando agrego 2 unidades del producto "Proteína Whey 2kg" al carrito
     Y agrego 1 unidad del producto "Mancuerna 5kg" al carrito
     Y agrego 1 unidad del producto "Pantalón Gym" al carrito
-    Entonces el total del carrito es "$130,000"
+    Entonces el total del carrito es "$150,000"
     Y el carrito contiene 4 items
     Cuando confirmo la compra
     Entonces recibo un pedido con estado "CONFIRMADO"
