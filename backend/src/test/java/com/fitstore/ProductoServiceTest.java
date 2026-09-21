@@ -1,7 +1,6 @@
 package com.fitstore;
 
 import com.fitstore.entity.Producto;
-import com.fitstore.exception.FitStoreException;
 import com.fitstore.repository.ProductoRepository;
 import com.fitstore.service.ProductoService;
 import org.junit.jupiter.api.BeforeEach;
