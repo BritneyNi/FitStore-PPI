@@ -2,7 +2,7 @@
 
 **Ingeniería de Software II · TdeA · Mayo 2026**
 
-Stack: HTML/CSS/JS vanilla · Spring Boot 3.5.7 · MySQL · Redis · RabbitMQ · AWS
+Stack: HTML/CSS/JS vanilla · Spring Boot 3.5.7 · SQL Server · Redis · RabbitMQ · AWS
 
 ---
 
@@ -33,7 +33,7 @@ FitStore-PPI/
 │   ├── css/style.css
 │   └── js/app.js             ← Consume la API REST real
 ├── docs/
-│   └── setup-mysql.sql       ← Script de base de datos
+│   └── setup-sqlserver.sql   ← Script de base de datos (T-SQL)
 ├── docker-compose.yml        ← Redis + RabbitMQ con Docker
 └── README.md
 ```
@@ -46,7 +46,7 @@ FitStore-PPI/
 |-------------|---------------|---------|
 | Java JDK    | 25            | https://adoptium.net |
 | Maven       | 3.9+          | https://maven.apache.org |
-| MySQL       | 8.0+          | https://dev.mysql.com |
+| SQL Server  | 2022          | https://www.microsoft.com/sql-server |
 | Docker      | 20+           | https://docker.com (para Redis y RabbitMQ) |
 
 > El backend compila y se ejecuta con **Java 25** y **Spring Boot 3.5.7**.
@@ -68,32 +68,33 @@ Usuario: `guest` / Contraseña: `guest`
 
 ---
 
-## Paso 2 — Crear la base de datos MySQL
+## Paso 2 — Crear la base de datos en SQL Server
 
-```bash
-mysql -u root -p
-```
+Abrir **SSMS**, conectarse al servidor local (autenticación de Windows) y ejecutar:
 
 ```sql
--- En la consola MySQL:
-CREATE DATABASE fitstore_db CHARACTER SET utf8mb4;
-exit;
+CREATE DATABASE fitstore_db;
+GO
+
+-- Crear login de aplicación y darlo acceso (requiere modo mixto)
+CREATE LOGIN fitstore_user WITH PASSWORD = 'Fitstore2026!', CHECK_POLICY = OFF;
+USE fitstore_db;
+CREATE USER fitstore_user FOR LOGIN fitstore_user;
+ALTER ROLE db_owner ADD MEMBER fitstore_user;
+GO
 ```
 
-O ejecutar el archivo:
-```bash
-mysql -u root -p < docs/setup-mysql.sql
-```
+O ejecutar el archivo directamente con `sqlcmd -S localhost -E -i docs/setup-sqlserver.sql`.
 
 ---
 
-## Paso 3 — Configurar credenciales MySQL
+## Paso 3 — Configurar credenciales SQL Server
 
 Editar `backend/src/main/resources/application.properties`:
 
 ```properties
-spring.datasource.username=root
-spring.datasource.password=TU_PASSWORD_MYSQL
+spring.datasource.username=fitstore_user
+spring.datasource.password=Fitstore2026!
 ```
 
 ---
@@ -109,7 +110,7 @@ mvn spring-boot:run
 > Si estás usando un JDK distinto, cambia a Java 25 antes de compilar o ejecutar los tests.
 
 Al iniciar, Spring Boot:
-1. Crea las tablas automáticamente en MySQL
+1. Crea las tablas automáticamente en SQL Server
 2. Inserta usuarios y productos de prueba (DataSeeder)
 3. Se conecta a Redis y RabbitMQ
 
@@ -139,7 +140,7 @@ Ejecuta:
 - **ProductoServiceTest** — pruebas unitarias del servicio de productos y caché Redis.
 - **CucumberRunner** — suite BDD (Cucumber + JUnit Platform) con los 15 escenarios de `backend/src/test/resources/features/compra.feature`: login con JWT, catálogo, filtros por categoría, búsqueda, carrito/localStorage, compra ACID, verificación de stock < 1 s (RNF-01), notificaciones asíncronas por RabbitMQ, estados de pedido (incluye restauración de stock al cancelar) y panel admin.
 
-**Requisitos:** MySQL con la BD creada, Redis y RabbitMQ arriba (`docker-compose up -d`).
+**Requisitos:** SQL Server con la BD creada, Redis y RabbitMQ arriba (`docker-compose up -d`).
 
 > Los tests usan la BD real, pero se auto-limpian: al finalizar, `TestDataRestorer` vuelve a insertar el catálogo original de 12 productos, borra pedidos/ítems y vacía la caché de Redis.
 
@@ -182,7 +183,7 @@ Ejecuta:
 | Patrón           | Dónde                  | Para qué |
 |------------------|------------------------|----------|
 | MVC / Capas      | Spring Boot completo   | Separación de responsabilidades |
-| Repository       | JPA + MySQL            | Abstracción de persistencia |
+| Repository       | JPA + SQL Server       | Abstracción de persistencia |
 | **Cache-Aside**  | ProductoService.java   | Stock en Redis → RNF-01 < 1 seg |
 | **Producer-Consumer** | NotificationService.java | Emails asíncronos con RabbitMQ |
 | Facade           | OrderService.java      | Coordina todo el flujo de compra |
@@ -201,7 +202,7 @@ Internet
    │
 [EC2 / ECS]        ← Spring Boot API (Auto Scaling)
    │
-[RDS MySQL Multi-AZ]    ← Base de datos (99.5% uptime)
+[RDS SQL Server Multi-AZ]    ← Base de datos (99.5% uptime)
 [ElastiCache Redis]     ← Caché de stock
 [Amazon MQ RabbitMQ]   ← Cola de notificaciones
 ```

@@ -45,7 +45,7 @@ public class ProductoService {
     // ── Cache-Aside — RNF-01: stock < 1 segundo ─────────────
     //
     //  1. Busca en Redis (~15ms)
-    //  2. Si no hay, va a MySQL y guarda en Redis con TTL 5 min
+    //  2. Si no hay, va a la base de datos y guarda en Redis con TTL 5 min
     //  3. Retorna si hay suficiente stock
     //
     public boolean verificarStock(Long idProducto, int cantidad) {
@@ -59,7 +59,7 @@ public class ProductoService {
             stockActual = Integer.parseInt(cached.toString());
             log.info("[Cache HIT] stock:{} = {}", idProducto, stockActual);
         } else {
-            // 2. MySQL fallback
+            // 2. Base de datos fallback
             Producto p = obtenerPorId(idProducto);
             stockActual = p.getStock();
 
@@ -80,7 +80,7 @@ public class ProductoService {
         p.setStock(p.getStock() - cantidad);
         productoRepo.save(p);
 
-        // Invalidar caché para que el próximo read vaya a MySQL
+        // Invalidar caché para que el próximo read vaya a la base de datos
         redisTemplate.delete(STOCK_KEY + idProducto);
         log.info("[Cache INVALIDADO] stock:{}", idProducto);
     }

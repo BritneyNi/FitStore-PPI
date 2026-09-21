@@ -37,9 +37,9 @@ public class TestDataRestorer {
         itemPedidoRepo.deleteAll();
         pedidoRepo.deleteAll();
         productoRepo.deleteAll();
-        jdbc.update("ALTER TABLE items_pedido AUTO_INCREMENT = 1");
-        jdbc.update("ALTER TABLE pedidos AUTO_INCREMENT = 1");
-        jdbc.update("ALTER TABLE productos AUTO_INCREMENT = 1");
+        jdbc.update("DBCC CHECKIDENT ('items_pedido', RESEED, 0)");
+        jdbc.update("DBCC CHECKIDENT ('pedidos', RESEED, 0)");
+        jdbc.update("DBCC CHECKIDENT ('productos', RESEED, 0)");
         productoRepo.saveAll(productosOriginales());
         redisTemplate.getConnectionFactory().getConnection().serverCommands().flushDb();
     }
