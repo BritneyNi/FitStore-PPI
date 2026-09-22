@@ -10,7 +10,7 @@ Stack: HTML/CSS/JS vanilla · Spring Boot 3.5.7 · SQL Server · Redis · Rabbit
 
 ```
 FitStore-PPI/
-├── backend/                  ← Spring Boot (Java 25)
+├── backend/                  ← Spring Boot (Java 22)
 │   ├── pom.xml               ← Dependencias Maven
 │   └── src/main/java/com/fitstore/
 │       ├── FitStoreApplication.java
@@ -44,12 +44,12 @@ FitStore-PPI/
 
 | Herramienta | Versión mínima | Descarga |
 |-------------|---------------|---------|
-| Java JDK    | 25            | https://adoptium.net |
-| Maven       | 3.9+          | https://maven.apache.org |
+| Java JDK    | 22            | https://adoptium.net |
+| Maven       | Ninguna (repo incluye Maven Wrapper: `mvnw`/`mvnw.cmd`) | — |
 | SQL Server  | 2022          | https://www.microsoft.com/sql-server |
 | Docker      | 20+           | https://docker.com (para Redis y RabbitMQ) |
 
-> El backend compila y se ejecuta con **Java 25** y **Spring Boot 3.5.7**.
+> El backend compila y se ejecuta con **Java 22** y **Spring Boot 3.5.7**. Maven no necesita instalarse: el repositorio incluye el **Maven Wrapper** (`backend/mvnw` en Linux/macOS, `backend/mvnw.cmd` en Windows) que descarga Maven 3.9.12 automáticamente en el primer uso.
 
 ---
 
@@ -101,13 +101,21 @@ spring.datasource.password=Fitstore2026!
 
 ## Paso 4 — Compilar y ejecutar el backend
 
+En Windows usa `mvnw.cmd`; en Linux/macOS, `./mvnw`. Si tienes Maven global en PATH, `mvn` funciona igual.
+
 ```bash
 cd backend
-mvn clean install -DskipTests
-mvn spring-boot:run
+
+# Windows:
+mvnw clean install -DskipTests
+mvnw spring-boot:run
+
+# Linux/macOS (o con Maven global):
+./mvnw clean install -DskipTests
+./mvnw spring-boot:run
 ```
 
-> Si estás usando un JDK distinto, cambia a Java 25 antes de compilar o ejecutar los tests.
+> Si estás usando un JDK distinto, cambia a Java 22 antes de compilar o ejecutar los tests (ver `java.version` en `backend/pom.xml`).
 
 Al iniciar, Spring Boot:
 1. Crea las tablas automáticamente en SQL Server
@@ -132,7 +140,8 @@ Abrir `frontend/index.html` directamente en el navegador.
 
 ```bash
 cd backend
-mvn test
+mvnw test        # Windows
+./mvnw test      # Linux/macOS
 ```
 
 Ejecuta:
@@ -220,4 +229,4 @@ Internet
 | RNF-01 | Stock verificado en < 1 segundo               | ✅ Redis Cache-Aside |
 | RNF-02 | Pagos cifrados HTTPS/SSL                      | ✅ Config AWS + Spring Security |
 | RNF-03 | Control de acceso por roles                   | ✅ JWT + @PreAuthorize |
-| RNF-04 | Backend desarrollado en Java                  | ✅ Spring Boot Java 25 |
+| RNF-04 | Backend desarrollado en Java                  | ✅ Spring Boot Java 22 |
