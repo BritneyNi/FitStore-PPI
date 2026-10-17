@@ -109,4 +109,21 @@ public class OrderService {
         pedido.setEstado(estado);
         return pedidoRepo.save(pedido);
     }
+
+    @Transactional
+    public void eliminarPedido(Long pedidoId) {
+        Pedido pedido = pedidoRepo
+                .findById(pedidoId)
+                .orElseThrow(() -> new FitStoreException("Pedido no encontrado: " + pedidoId));
+
+        // Si el pedido no estaba cancelado, devolver el stock que tenía reservado.
+        if (pedido.getEstado() != Pedido.Estado.CANCELADO) {
+            for (ItemPedido item : pedido.getItems()) {
+                productoService.restaurarStock(item.getProducto().getId(), item.getCantidad());
+            }
+        }
+
+        pedidoRepo.delete(pedido);
+        log.info("[OrderService] Pedido #{} eliminado por el administrador", pedidoId);
+    }
 }

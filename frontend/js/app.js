@@ -6,7 +6,7 @@
 
 /* exported mostrarVista, login, logout, filtrar, buscar,
    agregarAlCarrito, toggleCarrito, cambiarCantidad, eliminarDelCarrito,
-   confirmarCompra, actualizarStock, actualizarEstadoPedido */
+   confirmarCompra, actualizarStock, actualizarEstadoPedido, eliminarPedido */
 
 const Api   = window.FitStore.api;
 const Store = window.FitStore.storage;
@@ -329,6 +329,7 @@ async function cargarAdmin() {
                     <option value="CANCELADO" ${p.estado === 'CANCELADO' ? 'selected' : ''}>Cancelado</option>
                   </select>
                   <button class="btn-guardar" onclick="actualizarEstadoPedido(${p.id})">Actualizar</button>
+                  <button class="btn-eliminar" title="Eliminar pedido" onclick="eliminarPedido(${p.id})">🗑</button>
                 </td>
               </tr>
             `).join("")}
@@ -358,6 +359,17 @@ async function actualizarEstadoPedido(id) {
   try {
     await patch("/admin/pedidos/" + id + "/estado", { estado });
     mostrarToast(`✅ Pedido #${id} actualizado a ${estado}.`);
+    cargarAdmin();
+  } catch (e) {
+    mostrarToast("❌ " + e.message);
+  }
+}
+
+async function eliminarPedido(id) {
+  if (!confirm(`¿Eliminar el pedido #${id}? Esta acción no se puede deshacer.`)) return;
+  try {
+    await Api.del("/admin/pedidos/" + id);
+    mostrarToast(`🗑 Pedido #${id} eliminado.`);
     cargarAdmin();
   } catch (e) {
     mostrarToast("❌ " + e.message);

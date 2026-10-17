@@ -144,4 +144,10 @@ class AdminController {
     public ApiResponse<Pedido> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
         return ApiResponse.of(orderService.actualizarEstado(id, body.get("estado")));
     }
+
+    @DeleteMapping("/pedidos/{id}")
+    public ApiResponse<Map<String, Object>> eliminarPedido(@PathVariable Long id) {
+        orderService.eliminarPedido(id);
+        return ApiResponse.of(Map.of("id", id, "eliminado", true));
+    }
 }
