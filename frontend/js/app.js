@@ -199,7 +199,7 @@ function renderCarrito() {
       <span class="carrito-emoji">${i.emoji}</span>
       <div class="carrito-item-info">
         <span class="carrito-item-nombre">${i.nombre}${i.talla ? ' (Talla ' + i.talla + ')' : ''}</span>
-        <span class="carrito-item-precio">$${formatPrecio(i.precio)}</span>
+        <span class="carrito-item-precio">$${formatPrecio(i.precio)} (subtotal: $${formatPrecio(i.precio * i.cantidad)})</span>
       </div>
       <div class="carrito-item-controles">
         <button onclick="cambiarCantidad(${i.id},-1)">−</button>
