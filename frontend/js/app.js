@@ -121,7 +121,7 @@ function renderCatalogo(lista) {
             ${p.stock === 0 ? 'Agotado' : p.stock <= 5 ? `¡Solo ${p.stock}!` : `Stock: ${p.stock}`}
           </span>
         </div>
-        <button class="btn-agregar" onclick="agregarAlCarrito(${p.id},'${p.nombre}',${p.precio},${p.stock},'${p.emoji || '📦'}')"
+        <button class="btn-agregar" onclick="agregarAlCarrito(${p.id},'${p.nombre}',${p.precio},${p.stock},'${p.emoji || '📦'}','${p.categoria}')"
           ${p.stock === 0 ? 'disabled' : ''}>
           ${p.stock === 0 ? 'Agotado' : '+ Agregar al carrito'}
         </button>
@@ -142,27 +142,40 @@ function buscar() {
 }
 
 // ── Carrito ──────────────────────────────────────────────────
-function agregarAlCarrito(id, nombre, precio, stock, emoji) {
+function agregarAlCarrito(id, nombre, precio, stock, emoji, categoria) {
   if (!usuarioActual) {
     mostrarToast("⚠️ Debes iniciar sesión para comprar.");
     mostrarVista("login");
     return;
   }
-  const existente = carrito.find(i => i.id === id);
+
+  let talla = null;
+  if (categoria && categoria.toUpperCase().includes("ROPA")) {
+    const t = prompt("Selecciona talla: S, M, L, XL (opcional)");
+    if (t !== null) {
+      talla = t.trim().toUpperCase();
+      const permitidas = ["S", "M", "L", "XL", "XXL"];
+      if (talla !== "" && !permitidas.includes(talla)) {
+        mostrarToast("⚠️ Talla no válida. Usando sin talla.");
+        talla = null;
+      }
+    }
+  }
+
+  const existente = carrito.find(i => i.id === id && (i.talla || null) === (talla || null));
   if (existente) {
     if (existente.cantidad >= stock) { mostrarToast("⚠️ No hay más stock disponible."); return; }
     if (existente.cantidad + 1 > stock) { mostrarToast("⚠️ No hay suficiente stock."); return; }
     existente.cantidad++;
   } else {
     if (stock < 1) { mostrarToast("⚠️ Producto agotado."); return; }
-    carrito.push({ id, nombre, precio, stock, emoji, cantidad: 1 });
+    carrito.push({ id, nombre, precio, stock, emoji, cantidad: 1, talla: talla || undefined });
   }
   Store.setCart(carrito);
   actualizarContadorCarrito();
-  const totalProd = carrito.find(i => i.id === id)?.cantidad || 1;
-  mostrarToast(`✅ ${nombre} x${totalProd} agregado al carrito.`);
+  const totalProd = carrito.find(i => i.id === id && (i.talla || null) === (talla || null))?.cantidad || 1;
+  mostrarToast(`✅ ${nombre}${talla ? " (Talla " + talla + ")" : ""} x${totalProd} agregado al carrito.`);
 }
-
 function toggleCarrito() {
   const panel   = document.getElementById("carritoPanel");
   const overlay = document.getElementById("overlay");
@@ -185,7 +198,7 @@ function renderCarrito() {
     <div class="carrito-item">
       <span class="carrito-emoji">${i.emoji}</span>
       <div class="carrito-item-info">
-        <span class="carrito-item-nombre">${i.nombre}</span>
+        <span class="carrito-item-nombre">${i.nombre}${i.talla ? ' (Talla ' + i.talla + ')' : ''}</span>
         <span class="carrito-item-precio">$${formatPrecio(i.precio)}</span>
       </div>
       <div class="carrito-item-controles">
