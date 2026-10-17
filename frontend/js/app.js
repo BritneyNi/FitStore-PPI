@@ -150,9 +150,10 @@ function agregarAlCarrito(id, nombre, precio, stock, emoji) {
   }
   const existente = carrito.find(i => i.id === id);
   if (existente) {
-    if (existente.cantidad >= stock) { mostrarToast("⚠️ No hay más stock."); return; }
+    if (existente.cantidad >= stock) { mostrarToast("⚠️ No hay más stock disponible."); return; }
     existente.cantidad++;
   } else {
+    if (stock < 1) { mostrarToast("⚠️ Producto agotado."); return; }
     carrito.push({ id, nombre, precio, stock, emoji, cantidad: 1 });
   }
   Store.setCart(carrito);
