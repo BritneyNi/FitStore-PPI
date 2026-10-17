@@ -217,10 +217,20 @@ function renderCarrito() {
 function cambiarCantidad(id, delta) {
   const item = carrito.find(i => i.id === id);
   if (!item) return;
+  if (delta > 0 && item.cantidad >= item.stock) {
+    mostrarToast("⚠️ No hay más stock disponible.");
+    Store.setCart(carrito); actualizarContadorCarrito(); renderCarrito();
+    return;
+  }
   item.cantidad += delta;
   if (item.cantidad <= 0) eliminarDelCarrito(id);
-  else if (item.cantidad > item.stock) item.cantidad = item.stock;
-  else { Store.setCart(carrito); actualizarContadorCarrito(); renderCarrito(); }
+  else if (item.cantidad > item.stock) {
+    item.cantidad = item.stock;
+    mostrarToast("⚠️ Se ajustó a stock máximo disponible.");
+    Store.setCart(carrito); actualizarContadorCarrito(); renderCarrito();
+  } else {
+    Store.setCart(carrito); actualizarContadorCarrito(); renderCarrito();
+  }
 }
 
 function eliminarDelCarrito(id) {
