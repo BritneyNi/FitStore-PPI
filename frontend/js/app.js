@@ -157,7 +157,8 @@ function agregarAlCarrito(id, nombre, precio, stock, emoji) {
   }
   Store.setCart(carrito);
   actualizarContadorCarrito();
-  mostrarToast(`✅ ${nombre} agregado al carrito.`);
+  const totalProd = carrito.find(i => i.id === id)?.cantidad || 1;
+  mostrarToast(`✅ ${nombre} x${totalProd} agregado al carrito.`);
 }
 
 function toggleCarrito() {
