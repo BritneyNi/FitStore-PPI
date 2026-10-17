@@ -32,6 +32,13 @@ backend/target/
 *.iml
 .vscode/
 
+# Herramientas de modernizacion (GitHub Copilot appmod) — no versionar
+.github/modernize/
+
+# Logs de verificacion/build sueltos
+verify-*.log
+*.err
+
 # OS
 Thumbs.db
 .DS_Store

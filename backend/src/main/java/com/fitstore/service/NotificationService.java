@@ -23,7 +23,9 @@ public class NotificationService {
     private String routingKey;
 
     // ── PRODUCER: OrderService llama esto al confirmar pedido ─
-    // El checkout NO espera el email — patrón Producer-Consumer
+    // El checkout NO espera el email — patrón Producer-Consumer.
+    // Tolerante a fallos: si RabbitMQ está caído, se registra el aviso
+    // pero la compra NO se revierte (no lanza excepción al caller).
     public void publicarPedidoConfirmado(Long pedidoId, String emailCliente, String nombreCliente, Double total) {
         Map<String, Object> mensaje = Map.of(
             "pedidoId",      pedidoId,
@@ -33,8 +35,14 @@ public class NotificationService {
             "timestamp",     System.currentTimeMillis()
         );
 
-        rabbitTemplate.convertAndSend(exchange, routingKey, mensaje);
-        log.info("[RabbitMQ] Mensaje publicado → pedido #{} para {}", pedidoId, emailCliente);
+        try {
+            rabbitTemplate.convertAndSend(exchange, routingKey, mensaje);
+            log.info("[RabbitMQ] Mensaje publicado → pedido #{} para {}", pedidoId, emailCliente);
+        } catch (Exception ex) {
+            // El pedido ya quedó guardado en la BD; la notificación es best-effort.
+            log.warn("[RabbitMQ DOWN] no se pudo publicar el pedido #{} ({}). "
+                   + "El pedido quedó registrado igual.", pedidoId, ex.getMessage());
+        }
     }
 
     // ── CONSUMER: escucha la cola y envía el email ────────────

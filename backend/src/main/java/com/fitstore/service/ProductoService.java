@@ -51,20 +51,20 @@ public class ProductoService {
     public boolean verificarStock(Long idProducto, int cantidad) {
         String key = STOCK_KEY + idProducto;
 
-        // 1. Redis primero
-        Object cached = redisTemplate.opsForValue().get(key);
+        // 1. Redis primero (si falla, se ignora y se sigue con la BD)
+        Object cached = cacheGet(key);
         Integer stockActual;
 
         if (cached != null) {
             stockActual = Integer.parseInt(cached.toString());
             log.info("[Cache HIT] stock:{} = {}", idProducto, stockActual);
         } else {
-            // 2. Base de datos fallback
+            // 2. Base de datos fallback (siempre disponible)
             Producto p = obtenerPorId(idProducto);
             stockActual = p.getStock();
 
-            // 3. Guardar en Redis
-            redisTemplate.opsForValue().set(key, stockActual, STOCK_TTL, TimeUnit.SECONDS);
+            // 3. Guardar en Redis (best-effort)
+            cacheSet(key, stockActual, STOCK_TTL);
             log.info("[Cache MISS] stock:{} = {} → guardado en Redis", idProducto, stockActual);
         }
 
@@ -81,7 +81,7 @@ public class ProductoService {
         productoRepo.save(p);
 
         // Invalidar caché para que el próximo read vaya a la base de datos
-        redisTemplate.delete(STOCK_KEY + idProducto);
+        cacheDelete(STOCK_KEY + idProducto);
         log.info("[Cache INVALIDADO] stock:{}", idProducto);
     }
 
@@ -92,7 +92,7 @@ public class ProductoService {
         Producto p = obtenerPorId(idProducto);
         p.setStock(p.getStock() + cantidad);
         productoRepo.save(p);
-        redisTemplate.delete(STOCK_KEY + idProducto);
+        cacheDelete(STOCK_KEY + idProducto);
         log.info("[Cache INVALIDADO] stock:{} (restaurado +{})", idProducto, cantidad);
     }
 
@@ -103,7 +103,7 @@ public class ProductoService {
         Producto p = obtenerPorId(id);
         p.setStock(nuevoStock);
         productoRepo.save(p);
-        redisTemplate.delete(STOCK_KEY + id);
+        cacheDelete(STOCK_KEY + id);
         return p;
     }
 
@@ -114,5 +114,35 @@ public class ProductoService {
 
     public List<Producto> productosConStockBajo() {
         return productoRepo.findByStockLessThanEqual(5);
+    }
+
+    // ── Helpers de caché tolerantes a fallos ─────────────────
+    // Si Redis está caído, la app NO se rompe: se degrada a la BD.
+    // El stock se sigue verificando (baja a ~50 ms en vez de ~15 ms),
+    // manteniendo la disponibilidad de la tienda.
+
+    private Object cacheGet(String key) {
+        try {
+            return redisTemplate.opsForValue().get(key);
+        } catch (Exception ex) {
+            log.warn("[Cache DOWN] no se pudo leer Redis ({}); usando BD", ex.getMessage());
+            return null;
+        }
+    }
+
+    private void cacheSet(String key, Object value, long ttlSeconds) {
+        try {
+            redisTemplate.opsForValue().set(key, value, ttlSeconds, TimeUnit.SECONDS);
+        } catch (Exception ex) {
+            log.warn("[Cache DOWN] no se pudo escribir Redis ({}); se ignora", ex.getMessage());
+        }
+    }
+
+    private void cacheDelete(String key) {
+        try {
+            redisTemplate.delete(key);
+        } catch (Exception ex) {
+            log.warn("[Cache DOWN] no se pudo invalidar Redis ({}); se ignora", ex.getMessage());
+        }
     }
 }
