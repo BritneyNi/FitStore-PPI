@@ -1,19 +1,19 @@
 package com.fitstore.controller;
 
+import com.fitstore.dto.response.ApiResponse;
+import com.fitstore.dto.response.Paginacion;
 import com.fitstore.entity.Pedido;
 import com.fitstore.entity.Producto;
 import com.fitstore.repository.PedidoRepository;
 import com.fitstore.service.AuthService;
 import com.fitstore.service.OrderService;
 import com.fitstore.service.ProductoService;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 // ── /api/auth ──────────────────────────────────────────────
 
@@ -25,17 +25,13 @@ class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(
-            authService.login(body.get("email"), body.get("clave"))
-        );
+    public ApiResponse<Map<String, String>> login(@RequestBody Map<String, String> body) {
+        return ApiResponse.of(authService.login(body.get("email"), body.get("clave")));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(
-            authService.registrar(body.get("nombre"), body.get("email"), body.get("clave"))
-        );
+    public ApiResponse<Map<String, String>> register(@RequestBody Map<String, String> body) {
+        return ApiResponse.of(authService.registrar(body.get("nombre"), body.get("email"), body.get("clave")));
     }
 }
 
@@ -49,35 +45,36 @@ class ProductoController {
     private final ProductoService productoService;
 
     @GetMapping
-    public ResponseEntity<List<Producto>> listar(
+    public ApiResponse<List<Producto>> listar(
             @RequestParam(required = false) String categoria,
-            @RequestParam(required = false) String buscar) {
+            @RequestParam(required = false) String buscar,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer limit) {
 
+        List<Producto> productos;
         if (categoria != null && !categoria.isEmpty()) {
-            return ResponseEntity.ok(productoService.listarPorCategoria(categoria));
+            productos = productoService.listarPorCategoria(categoria);
+        } else if (buscar != null && !buscar.isEmpty()) {
+            productos = productoService.buscarPorNombre(buscar);
+        } else {
+            productos = productoService.listarTodos();
         }
-        if (buscar != null && !buscar.isEmpty()) {
-            return ResponseEntity.ok(productoService.buscarPorNombre(buscar));
-        }
-        return ResponseEntity.ok(productoService.listarTodos());
+        return Paginacion.de(productos, page, limit);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Producto> obtener(@PathVariable Long id) {
-        return ResponseEntity.ok(productoService.obtenerPorId(id));
+    public ApiResponse<Producto> obtener(@PathVariable Long id) {
+        return ApiResponse.of(productoService.obtenerPorId(id));
     }
 
     @GetMapping("/{id}/stock")
-    public ResponseEntity<Map<String, Object>> verificarStock(
-            @PathVariable Long id,
-            @RequestParam int cantidad) {
+    public ApiResponse<Map<String, Object>> verificarStock(@PathVariable Long id, @RequestParam int cantidad) {
 
         boolean disponible = productoService.verificarStock(id, cantidad);
-        return ResponseEntity.ok(Map.of(
-            "productoId",  id,
-            "cantidad",    cantidad,
-            "disponible",  disponible
-        ));
+        return ApiResponse.of(Map.of(
+                "productoId", id,
+                "cantidad", cantidad,
+                "disponible", disponible));
     }
 }
 
@@ -91,21 +88,21 @@ class PedidoController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<Pedido> confirmar(
-            @RequestBody Map<String, Object> body,
-            Authentication auth) {
+    public ApiResponse<Pedido> confirmar(@RequestBody Map<String, Object> body, Authentication auth) {
 
         @SuppressWarnings("unchecked")
-        List<Map<String, Object>> items =
-            (List<Map<String, Object>>) body.get("items");
+        List<Map<String, Object>> items = (List<Map<String, Object>>) body.get("items");
 
-        Pedido pedido = orderService.confirmarPedido(auth.getName(), items);
-        return ResponseEntity.ok(pedido);
+        return ApiResponse.of(orderService.confirmarPedido(auth.getName(), items));
     }
 
     @GetMapping("/mis-pedidos")
-    public ResponseEntity<List<Pedido>> misPedidos(Authentication auth) {
-        return ResponseEntity.ok(orderService.obtenerPedidosCliente(auth.getName()));
+    public ApiResponse<List<Pedido>> misPedidos(
+            Authentication auth,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer limit) {
+
+        return Paginacion.de(orderService.obtenerPedidosCliente(auth.getName()), page, limit);
     }
 }
 
@@ -117,36 +114,34 @@ class PedidoController {
 @PreAuthorize("hasRole('ADMIN')")
 class AdminController {
 
-    private final ProductoService  productoService;
-    private final OrderService     orderService;
+    private final ProductoService productoService;
+    private final OrderService orderService;
     private final PedidoRepository pedidoRepo;
 
     @GetMapping("/productos")
-    public ResponseEntity<List<Producto>> listarProductos() {
-        return ResponseEntity.ok(productoService.listarTodos());
+    public ApiResponse<List<Producto>> listarProductos(
+            @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer limit) {
+        return Paginacion.de(productoService.listarTodos(), page, limit);
     }
 
     @PatchMapping("/productos/{id}/stock")
-    public ResponseEntity<Producto> actualizarStock(
-            @PathVariable Long id,
-            @RequestBody Map<String, Integer> body) {
-        return ResponseEntity.ok(productoService.actualizarStock(id, body.get("stock")));
+    public ApiResponse<Producto> actualizarStock(@PathVariable Long id, @RequestBody Map<String, Integer> body) {
+        return ApiResponse.of(productoService.actualizarStock(id, body.get("stock")));
     }
 
     @GetMapping("/productos/stock-bajo")
-    public ResponseEntity<List<Producto>> stockBajo() {
-        return ResponseEntity.ok(productoService.productosConStockBajo());
+    public ApiResponse<List<Producto>> stockBajo() {
+        return Paginacion.de(productoService.productosConStockBajo(), null, null);
     }
 
     @GetMapping("/pedidos")
-    public ResponseEntity<List<Pedido>> todosPedidos() {
-        return ResponseEntity.ok(pedidoRepo.findAll());
+    public ApiResponse<List<Pedido>> todosPedidos(
+            @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer limit) {
+        return Paginacion.de(pedidoRepo.findAll(), page, limit);
     }
 
     @PatchMapping("/pedidos/{id}/estado")
-    public ResponseEntity<Pedido> actualizarEstado(
-            @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(orderService.actualizarEstado(id, body.get("estado")));
+    public ApiResponse<Pedido> actualizarEstado(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        return ApiResponse.of(orderService.actualizarEstado(id, body.get("estado")));
     }
 }

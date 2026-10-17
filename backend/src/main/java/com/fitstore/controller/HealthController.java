@@ -1,5 +1,8 @@
 package com.fitstore.controller;
 
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.RedisCallback;
@@ -9,10 +12,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Health check de demostración: reporta el estado de cada dependencia
@@ -31,19 +30,23 @@ public class HealthController {
     @GetMapping
     public ResponseEntity<Map<String, Object>> health() {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("app",       "FitStore API");
+        body.put("app", "FitStore API");
         body.put("timestamp", LocalDateTime.now().toString());
-        body.put("database",  check(() -> jdbcTemplate.queryForObject("SELECT 1", Integer.class)));
-        body.put("redis",     check(() -> redisTemplate.execute((RedisCallback<String>) conn -> {
-                                  conn.ping();
-                                  return "PONG";
-                              })));
-        body.put("rabbitmq",  check(() -> rabbitTemplate.getConnectionFactory()
-                                  .createConnection().close()));
+        body.put("database", check(() -> jdbcTemplate.queryForObject("SELECT 1", Integer.class)));
+        body.put(
+                "redis",
+                check(() -> redisTemplate.execute((RedisCallback<String>) conn -> {
+                    conn.ping();
+                    return "PONG";
+                })));
+        body.put(
+                "rabbitmq",
+                check(() ->
+                        rabbitTemplate.getConnectionFactory().createConnection().close()));
 
         boolean allUp = body.get("database").equals("UP")
-                     && body.get("redis").equals("UP")
-                     && body.get("rabbitmq").equals("UP");
+                && body.get("redis").equals("UP")
+                && body.get("rabbitmq").equals("UP");
         body.put("status", allUp ? "UP" : "DEGRADED");
 
         return ResponseEntity.ok(body);

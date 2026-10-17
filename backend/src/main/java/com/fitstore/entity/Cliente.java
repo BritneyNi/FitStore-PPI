@@ -2,9 +2,9 @@ package com.fitstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "clientes")
@@ -32,6 +32,7 @@ public class Cliente {
     private Rol rol = Rol.CLIENTE;
 
     public enum Rol {
-        CLIENTE, ADMIN
+        CLIENTE,
+        ADMIN
     }
 }

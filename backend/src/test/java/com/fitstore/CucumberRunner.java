@@ -7,10 +7,10 @@ import org.junit.platform.suite.api.Suite;
 
 /**
  * Ejecutor de pruebas BDD con Cucumber
- * 
+ *
  * Ejecutar con:
  *   mvn test -Dtest=CucumberRunner
- * 
+ *
  * O ejecutar escenarios específicos por tag:
  *   mvn test -Dtest=CucumberRunner -Dcucumber.filter.tags="@compra"
  */

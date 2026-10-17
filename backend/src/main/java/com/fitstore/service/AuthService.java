@@ -4,23 +4,22 @@ import com.fitstore.config.JwtUtil;
 import com.fitstore.entity.Cliente;
 import com.fitstore.exception.FitStoreException;
 import com.fitstore.repository.ClienteRepository;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final ClienteRepository clienteRepo;
-    private final PasswordEncoder   passwordEncoder;
-    private final JwtUtil           jwtUtil;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     public Map<String, String> login(String email, String clave) {
-        Cliente cliente = clienteRepo.findByEmail(email)
-            .orElseThrow(() -> new FitStoreException("Usuario no encontrado"));
+        Cliente cliente =
+                clienteRepo.findByEmail(email).orElseThrow(() -> new FitStoreException("Usuario no encontrado"));
 
         if (!passwordEncoder.matches(clave, cliente.getClave())) {
             throw new FitStoreException("Credenciales inválidas");
@@ -29,11 +28,10 @@ public class AuthService {
         String token = jwtUtil.generarToken(email, cliente.getRol().name());
 
         return Map.of(
-            "token",  token,
-            "nombre", cliente.getNombre(),
-            "email",  cliente.getEmail(),
-            "rol",    cliente.getRol().name()
-        );
+                "token", token,
+                "nombre", cliente.getNombre(),
+                "email", cliente.getEmail(),
+                "rol", cliente.getRol().name());
     }
 
     public Map<String, String> registrar(String nombre, String email, String clave) {
@@ -50,10 +48,9 @@ public class AuthService {
 
         String token = jwtUtil.generarToken(email, "CLIENTE");
         return Map.of(
-            "token",  token,
-            "nombre", nombre,
-            "email",  email,
-            "rol",    "CLIENTE"
-        );
+                "token", token,
+                "nombre", nombre,
+                "email", email,
+                "rol", "CLIENTE");
     }
 }

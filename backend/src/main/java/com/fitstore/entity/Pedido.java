@@ -1,10 +1,10 @@
 package com.fitstore.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "pedidos")
@@ -34,6 +34,9 @@ public class Pedido {
     private LocalDateTime fecha = LocalDateTime.now();
 
     public enum Estado {
-        CONFIRMADO, EN_CAMINO, ENTREGADO, CANCELADO
+        CONFIRMADO,
+        EN_CAMINO,
+        ENTREGADO,
+        CANCELADO
     }
 }

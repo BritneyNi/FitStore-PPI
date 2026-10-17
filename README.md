@@ -31,13 +31,21 @@ FitStore-PPI/
 ├── frontend/                 ← HTML + CSS + JS vanilla
 │   ├── index.html
 │   ├── css/style.css
-│   └── js/app.js             ← Consume la API REST real
+│   ├── js/
+│   │   ├── config.js         ← URL base de la API (<meta api-base-url>)
+│   │   ├── storage.js        ← Persistencia en localStorage
+│   │   ├── api.js            ← Capa HTTP: JWT + envelope + errores
+│   │   └── app.js            ← Vistas y eventos (usa las capas de arriba)
+│   ├── eslint.config.mjs     ← Reglas de lint del frontend
+│   └── README.md             ← Documentación de la capa frontend
 ├── docs/
 │   └── setup-sqlserver.sql   ← Script de base de datos (T-SQL)
 ├── docker-compose.yml        ← Redis + RabbitMQ con Docker
 ├── start.ps1 / start.bat     ← Arranque completo con un clic (verifica todo)
 └── README.md
 ```
+
+> Cada capa tiene su propia documentación: **[`backend/README.md`](backend/README.md)** (config, endpoints, envelope, errores) y **[`frontend/README.md`](frontend/README.md)** (capas JS, ESLint, flujo de vistas).
 
 ---
 
@@ -107,14 +115,22 @@ O ejecutar el archivo directamente con `sqlcmd -S localhost -E -i docs/setup-sql
 
 ---
 
-## Paso 3 — Configurar credenciales SQL Server
+## Paso 3 — Configurar credenciales SQL Server y JWT
 
-Editar `backend/src/main/resources/application.properties`:
+Las credenciales **no se versionan**. Copia la plantilla y edita tus valores:
+
+```bash
+copy backend\src\main\resources\application-local.properties.example backend\src\main\resources\application-local.properties
+```
 
 ```properties
+# backend/src/main/resources/application-local.properties  (ignorado por Git)
 spring.datasource.username=fitstore_user
 spring.datasource.password=Fitstore2026!
+fitstore.jwt.secret=una-clave-secreta-de-al-menos-32-caracteres
 ```
+
+Alternativamente, define `DB_USERNAME`, `DB_PASSWORD` y `JWT_SECRET` como variables de entorno. Si falta alguna, la aplicación **falla al arrancar** con un mensaje claro (*fail-fast*). El resto de valores por defecto están en `backend/README.md`.
 
 ---
 
@@ -174,7 +190,18 @@ Ejecuta:
 
 ---
 
+## Calidad de Código (Lint y Formato)
+
+| Capa | Herramienta | Comandos |
+|------|-------------|----------|
+| Backend (Java) | **Spotless** + palantir-java-format 2.80.0 | `mvnw.cmd spotless:apply` (formatea) · `mvnw.cmd spotless:check` (valida) |
+| Frontend (JS) | **ESLint 9** (flat config) | `cd frontend && npm install && npm run lint` |
+
+---
+
 ## Endpoints de la API
+
+> **Formato de respuesta (envelope):** los resultados de éxito van dentro de `{ "data": …, "meta": { … } }` y los errores en `{ "error": { "status", "message", "details" } }`. Detalle completo en [`backend/README.md`](backend/README.md).
 
 ### Autenticación
 | Método | Endpoint            | Descripción         | Auth |

@@ -3,23 +3,23 @@ package com.fitstore.service;
 import com.fitstore.entity.*;
 import com.fitstore.exception.FitStoreException;
 import com.fitstore.repository.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class OrderService {
 
-    private final PedidoRepository     pedidoRepo;
-    private final ClienteRepository    clienteRepo;
-    private final ProductoService      productoService;
-    private final NotificationService  notificationService;
+    private final PedidoRepository pedidoRepo;
+    private final ClienteRepository clienteRepo;
+    private final ProductoService productoService;
+    private final NotificationService notificationService;
 
     // ── Confirmar pedido — flujo transaccional completo ──────
     //
@@ -33,18 +33,18 @@ public class OrderService {
     public Pedido confirmarPedido(String emailCliente, List<Map<String, Object>> items) {
 
         // 1. Obtener cliente
-        Cliente cliente = clienteRepo.findByEmail(emailCliente)
-            .orElseThrow(() -> new FitStoreException("Cliente no encontrado"));
+        Cliente cliente =
+                clienteRepo.findByEmail(emailCliente).orElseThrow(() -> new FitStoreException("Cliente no encontrado"));
 
         // 2. Verificar stock de todos los items antes de proceder
         for (Map<String, Object> item : items) {
-            Long   productoId = Long.valueOf(item.get("productoId").toString());
-            int    cantidad   = Integer.parseInt(item.get("cantidad").toString());
+            Long productoId = Long.valueOf(item.get("productoId").toString());
+            int cantidad = Integer.parseInt(item.get("cantidad").toString());
             Producto producto = productoService.obtenerPorId(productoId);
 
             if (!productoService.verificarStock(productoId, cantidad)) {
-                throw new FitStoreException("Stock insuficiente: " + producto.getNombre()
-                    + " (solicitado: " + cantidad + ")");
+                throw new FitStoreException(
+                        "Stock insuficiente: " + producto.getNombre() + " (solicitado: " + cantidad + ")");
             }
         }
 
@@ -57,9 +57,9 @@ public class OrderService {
         double total = 0.0;
 
         for (Map<String, Object> item : items) {
-            Long     productoId = Long.valueOf(item.get("productoId").toString());
-            int      cantidad   = Integer.parseInt(item.get("cantidad").toString());
-            Producto producto   = productoService.obtenerPorId(productoId);
+            Long productoId = Long.valueOf(item.get("productoId").toString());
+            int cantidad = Integer.parseInt(item.get("cantidad").toString());
+            Producto producto = productoService.obtenerPorId(productoId);
 
             // 4. Descontar stock (invalida caché Redis)
             productoService.descontarStock(productoId, cantidad);
@@ -82,25 +82,22 @@ public class OrderService {
 
         // 5. Notificación asíncrona por RabbitMQ — el checkout no espera
         notificationService.publicarPedidoConfirmado(
-            pedidoGuardado.getId(),
-            cliente.getEmail(),
-            cliente.getNombre(),
-            total
-        );
+                pedidoGuardado.getId(), cliente.getEmail(), cliente.getNombre(), total);
 
         return pedidoGuardado;
     }
 
     public List<Pedido> obtenerPedidosCliente(String emailCliente) {
-        Cliente cliente = clienteRepo.findByEmail(emailCliente)
-            .orElseThrow(() -> new FitStoreException("Cliente no encontrado"));
+        Cliente cliente =
+                clienteRepo.findByEmail(emailCliente).orElseThrow(() -> new FitStoreException("Cliente no encontrado"));
         return pedidoRepo.findByClienteOrderByFechaDesc(cliente);
     }
 
     @Transactional
     public Pedido actualizarEstado(Long pedidoId, String nuevoEstado) {
-        Pedido pedido = pedidoRepo.findById(pedidoId)
-            .orElseThrow(() -> new FitStoreException("Pedido no encontrado: " + pedidoId));
+        Pedido pedido = pedidoRepo
+                .findById(pedidoId)
+                .orElseThrow(() -> new FitStoreException("Pedido no encontrado: " + pedidoId));
         Pedido.Estado estado = Pedido.Estado.valueOf(nuevoEstado.toUpperCase().replace(" ", "_"));
 
         if (estado == Pedido.Estado.CANCELADO && pedido.getEstado() != Pedido.Estado.CANCELADO) {

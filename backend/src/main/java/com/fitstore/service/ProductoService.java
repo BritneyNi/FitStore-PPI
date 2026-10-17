@@ -3,13 +3,13 @@ package com.fitstore.service;
 import com.fitstore.entity.Producto;
 import com.fitstore.exception.FitStoreException;
 import com.fitstore.repository.ProductoRepository;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -19,8 +19,8 @@ public class ProductoService {
     private final ProductoRepository productoRepo;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String STOCK_KEY   = "stock:";
-    private static final long   STOCK_TTL   = 300; // 5 minutos (RNF-01)
+    private static final String STOCK_KEY = "stock:";
+    private static final long STOCK_TTL = 300; // 5 minutos (RNF-01)
 
     // ── Consultas ────────────────────────────────────────────
 
@@ -38,8 +38,7 @@ public class ProductoService {
     }
 
     public Producto obtenerPorId(Long id) {
-        return productoRepo.findById(id)
-            .orElseThrow(() -> new FitStoreException("Producto no encontrado: " + id));
+        return productoRepo.findById(id).orElseThrow(() -> new FitStoreException("Producto no encontrado: " + id));
     }
 
     // ── Cache-Aside — RNF-01: stock < 1 segundo ─────────────

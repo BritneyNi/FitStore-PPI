@@ -1,9 +1,9 @@
 package com.fitstore.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "productos")
@@ -35,6 +35,8 @@ public class Producto {
     private String emoji;
 
     public enum Categoria {
-        SUPLEMENTO, EQUIPO, ROPA
+        SUPLEMENTO,
+        EQUIPO,
+        ROPA
     }
 }

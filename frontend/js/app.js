@@ -1,59 +1,32 @@
 // ============================================================
-//  FitStore — app.js (integrado con API Spring Boot)
-//  Base URL: http://localhost:8080/api
+//  FitStore — app.js
+//  Vistas, estado de la interfaz y manejadores de eventos.
+//  La capa HTTP vive en api.js y la persistencia en storage.js.
 // ============================================================
 
-const API = "http://localhost:8080/api";
+/* exported mostrarVista, login, logout, filtrar, buscar,
+   agregarAlCarrito, toggleCarrito, cambiarCantidad, eliminarDelCarrito,
+   confirmarCompra, actualizarStock, actualizarEstadoPedido */
+
+const Api   = window.FitStore.api;
+const Store = window.FitStore.storage;
 
 // ── Estado global ────────────────────────────────────────────
-let token          = localStorage.getItem("fitstore_token") || null;
-let usuarioActual  = JSON.parse(localStorage.getItem("fitstore_user") || "null");
-let carrito        = JSON.parse(localStorage.getItem("fitstore_carrito") || "[]");
+let token         = Store.getToken();
+let usuarioActual = Store.getUser();
+let carrito       = Store.getCart();
 
-// ── Helpers HTTP ─────────────────────────────────────────────
-async function get(path) {
-  const headers = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = "Bearer " + token;
-  const res = await fetch(API + path, { headers });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Error " + res.status);
-  }
-  return res.json();
-}
-
-async function post(path, body) {
-  const headers = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = "Bearer " + token;
-  const res = await fetch(API + path, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Error " + res.status);
-  }
-  return res.json();
-}
-
-async function patch(path, body) {
-  const headers = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = "Bearer " + token;
-  const res = await fetch(API + path, {
-    method: "PATCH",
-    headers,
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Error " + res.status);
-  }
-  return res.json();
-}
+// ── Helpers HTTP (delegan en la capa Api; devuelven `data`) ──
+const get   = (path)       => Api.get(path);
+const post  = (path, body) => Api.post(path, body);
+const patch = (path, body) => Api.patch(path, body);
 
 // ── Inicialización ───────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
+  Api.setOnUnauthorized(() => {
+    logout();
+    mostrarToast("⚠️ Sesión expirada. Inicia sesión de nuevo.");
+  });
   if (usuarioActual) aplicarSesion(usuarioActual);
   actualizarContadorCarrito();
   await cargarCatalogo();
@@ -84,8 +57,8 @@ async function login() {
     const data = await post("/auth/login", { email, clave });
     token = data.token;
     usuarioActual = { nombre: data.nombre, email: data.email, rol: data.rol };
-    localStorage.setItem("fitstore_token", token);
-    localStorage.setItem("fitstore_user", JSON.stringify(usuarioActual));
+    Store.setToken(token);
+    Store.setUser(usuarioActual);
     aplicarSesion(usuarioActual);
     mostrarVista("catalogo");
     mostrarToast(`¡Bienvenido, ${data.nombre}! 👋`);
@@ -103,9 +76,7 @@ function aplicarSesion(usuario) {
 
 function logout() {
   token = null; usuarioActual = null; carrito = [];
-  localStorage.removeItem("fitstore_token");
-  localStorage.removeItem("fitstore_user");
-  localStorage.removeItem("fitstore_carrito");
+  Store.clear();
   document.getElementById("userInfo").style.display  = "none";
   document.getElementById("btnLogin").style.display  = "inline-block";
   document.getElementById("btnAdmin").style.display  = "none";
@@ -184,7 +155,7 @@ function agregarAlCarrito(id, nombre, precio, stock, emoji) {
   } else {
     carrito.push({ id, nombre, precio, stock, emoji, cantidad: 1 });
   }
-  localStorage.setItem("fitstore_carrito", JSON.stringify(carrito));
+  Store.setCart(carrito);
   actualizarContadorCarrito();
   mostrarToast(`✅ ${nombre} agregado al carrito.`);
 }
@@ -233,12 +204,12 @@ function cambiarCantidad(id, delta) {
   item.cantidad += delta;
   if (item.cantidad <= 0) eliminarDelCarrito(id);
   else if (item.cantidad > item.stock) item.cantidad = item.stock;
-  else { localStorage.setItem("fitstore_carrito", JSON.stringify(carrito)); actualizarContadorCarrito(); renderCarrito(); }
+  else { Store.setCart(carrito); actualizarContadorCarrito(); renderCarrito(); }
 }
 
 function eliminarDelCarrito(id) {
   carrito = carrito.filter(i => i.id !== id);
-  localStorage.setItem("fitstore_carrito", JSON.stringify(carrito));
+  Store.setCart(carrito);
   actualizarContadorCarrito(); renderCarrito();
 }
 
@@ -257,7 +228,7 @@ async function confirmarCompra() {
     const pedido = await post("/pedidos", { items });
 
     carrito = [];
-    localStorage.removeItem("fitstore_carrito");
+    Store.setCart(carrito);
     actualizarContadorCarrito();
     toggleCarrito();
     await cargarCatalogo(); // Refresca stock real del servidor

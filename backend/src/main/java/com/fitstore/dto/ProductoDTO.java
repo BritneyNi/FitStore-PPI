@@ -1,8 +1,8 @@
 package com.fitstore.dto;
 
 import com.fitstore.entity.Producto;
-import lombok.Data;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -19,13 +19,12 @@ public class ProductoDTO {
 
     public static ProductoDTO from(Producto p) {
         return new ProductoDTO(
-            p.getId(),
-            p.getNombre(),
-            p.getDescripcion(),
-            p.getPrecio(),
-            p.getStock(),
-            p.getCategoria(),
-            p.getEmoji()
-        );
+                p.getId(),
+                p.getNombre(),
+                p.getDescripcion(),
+                p.getPrecio(),
+                p.getStock(),
+                p.getCategoria(),
+                p.getEmoji());
     }
 }

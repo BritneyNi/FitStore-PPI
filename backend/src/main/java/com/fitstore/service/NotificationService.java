@@ -1,13 +1,12 @@
 package com.fitstore.service;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -28,20 +27,21 @@ public class NotificationService {
     // pero la compra NO se revierte (no lanza excepción al caller).
     public void publicarPedidoConfirmado(Long pedidoId, String emailCliente, String nombreCliente, Double total) {
         Map<String, Object> mensaje = Map.of(
-            "pedidoId",      pedidoId,
-            "email",         emailCliente,
-            "nombre",        nombreCliente,
-            "total",         total,
-            "timestamp",     System.currentTimeMillis()
-        );
+                "pedidoId", pedidoId,
+                "email", emailCliente,
+                "nombre", nombreCliente,
+                "total", total,
+                "timestamp", System.currentTimeMillis());
 
         try {
             rabbitTemplate.convertAndSend(exchange, routingKey, mensaje);
             log.info("[RabbitMQ] Mensaje publicado → pedido #{} para {}", pedidoId, emailCliente);
         } catch (Exception ex) {
             // El pedido ya quedó guardado en la BD; la notificación es best-effort.
-            log.warn("[RabbitMQ DOWN] no se pudo publicar el pedido #{} ({}). "
-                   + "El pedido quedó registrado igual.", pedidoId, ex.getMessage());
+            log.warn(
+                    "[RabbitMQ DOWN] no se pudo publicar el pedido #{} ({}). " + "El pedido quedó registrado igual.",
+                    pedidoId,
+                    ex.getMessage());
         }
     }
 
@@ -49,10 +49,10 @@ public class NotificationService {
     // Si SendGrid falla, RabbitMQ reintenta automáticamente
     @RabbitListener(queues = "${fitstore.rabbitmq.queue}")
     public void procesarNotificacion(Map<String, Object> mensaje) {
-        Long   pedidoId = Long.valueOf(mensaje.get("pedidoId").toString());
-        String email    = mensaje.get("email").toString();
-        String nombre   = mensaje.get("nombre").toString();
-        Double total    = Double.valueOf(mensaje.get("total").toString());
+        Long pedidoId = Long.valueOf(mensaje.get("pedidoId").toString());
+        String email = mensaje.get("email").toString();
+        String nombre = mensaje.get("nombre").toString();
+        Double total = Double.valueOf(mensaje.get("total").toString());
 
         log.info("[RabbitMQ Consumer] Procesando notificación pedido #{}", pedidoId);
 

@@ -35,6 +35,12 @@ backend/target/
 # Herramientas de modernizacion (GitHub Copilot appmod) — no versionar
 .github/modernize/
 
+# Configuracion local con secretos (credenciales BD, JWT) — no versionar
+**/application-local.properties
+
+# Dependencias de Node (frontend) — no versionar
+node_modules/
+
 # Logs de verificacion/build sueltos
 verify-*.log
 *.err

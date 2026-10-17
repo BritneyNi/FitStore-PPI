@@ -1,0 +1,16 @@
+# ============================================================
+#  FitStore — application-local.properties.example
+#
+#  Plantilla de configuracion local.
+#  Copia este archivo a `application-local.properties` y ajusta
+#  los valores reales. Ese archivo NO se versiona (esta en .gitignore).
+# ============================================================
+
+# Usuario de SQL Server con acceso a la base de datos `fitstore_db`
+spring.datasource.username=tu_usuario
+
+# Contrasena del usuario de SQL Server
+spring.datasource.password=tu_contrasena
+
+# Clave para firmar los JWT (minimo 32 caracteres / 256 bits)
+fitstore.jwt.secret=cambia-esta-clave-por-una-de-al-menos-32-caracteres

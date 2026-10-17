@@ -1,5 +1,9 @@
 package com.fitstore.steps;
-import com.fasterxml.jackson.core.type.TypeReference;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitstore.entity.Cliente;
 import com.fitstore.entity.Pedido;
@@ -14,6 +18,13 @@ import io.cucumber.java.es.Cuando;
 import io.cucumber.java.es.Dado;
 import io.cucumber.java.es.Entonces;
 import io.cucumber.spring.CucumberContextConfiguration;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -25,18 +36,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.sql.Statement;
-import java.util.stream.Collectors;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @CucumberContextConfiguration
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -130,8 +129,8 @@ public class CompraSteps {
         try {
             String json = "{\"email\":\"" + email + "\",\"clave\":\"" + clave + "\"}";
             MvcResult result = mockMvc.perform(post("/api/auth/login")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
                     .andReturn();
             if (result.getResponse().getStatus() == 200) {
                 Map<String, Object> resp = leerMapaJson(result.getResponse().getContentAsByteArray());
@@ -223,9 +222,9 @@ public class CompraSteps {
             String json = objectMapper.writeValueAsString(body);
 
             MvcResult result = mockMvc.perform(post("/api/pedidos")
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
                     .andReturn();
             int status = result.getResponse().getStatus();
 
@@ -282,12 +281,14 @@ public class CompraSteps {
             String json = objectMapper.writeValueAsString(body);
 
             MvcResult result = mockMvc.perform(post("/api/pedidos")
-                    .header("Authorization", "Bearer " + token)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(json))
+                            .header("Authorization", "Bearer " + token)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(json))
                     .andReturn();
-            Assertions.assertEquals(200, result.getResponse().getStatus(),
-                "Otro cliente no pudo comprar: " + result.getResponse().getContentAsString());
+            Assertions.assertEquals(
+                    200,
+                    result.getResponse().getStatus(),
+                    "Otro cliente no pudo comprar: " + result.getResponse().getContentAsString());
         } catch (Exception e) {
             Assertions.fail("Fallo compra de otro cliente: " + e.getMessage());
         } finally {
@@ -300,14 +301,23 @@ public class CompraSteps {
         return leerListaJson(result.getResponse().getContentAsByteArray());
     }
 
+    private com.fasterxml.jackson.databind.JsonNode desenvolver(byte[] bytes) throws Exception {
+        com.fasterxml.jackson.databind.JsonNode raiz = objectMapper.readTree(bytes);
+        if (raiz != null && raiz.has("data")) {
+            return raiz.get("data");
+        }
+        return raiz;
+    }
+
     private Map<String, Object> leerMapaJson(byte[] bytes) throws Exception {
-        return objectMapper.readValue(bytes,
-            objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
+        return objectMapper.convertValue(
+                desenvolver(bytes),
+                objectMapper.getTypeFactory().constructMapType(Map.class, String.class, Object.class));
     }
 
     private List<Map<String, Object>> leerListaJson(byte[] bytes) throws Exception {
-        return objectMapper.readValue(bytes,
-            objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
+        return objectMapper.convertValue(
+                desenvolver(bytes), objectMapper.getTypeFactory().constructCollectionType(List.class, Map.class));
     }
 
     private String tokenCliente() {
@@ -322,7 +332,8 @@ public class CompraSteps {
     }
 
     private void repoblarCacheStock(Long id, int cantidad) throws Exception {
-        mockMvc.perform(get("/api/productos/{id}/stock", id).param("cantidad", String.valueOf(cantidad))).andReturn();
+        mockMvc.perform(get("/api/productos/{id}/stock", id).param("cantidad", String.valueOf(cantidad)))
+                .andReturn();
     }
 
     private Integer stockRedis(Long id) {
@@ -332,7 +343,11 @@ public class CompraSteps {
 
     private void flushRedis() {
         try {
-            redisTemplate.getConnectionFactory().getConnection().serverCommands().flushDb();
+            redisTemplate
+                    .getConnectionFactory()
+                    .getConnection()
+                    .serverCommands()
+                    .flushDb();
         } catch (Exception ignored) {
         }
     }
@@ -361,18 +376,20 @@ public class CompraSteps {
             String nombre = fila.get("nombre");
             int stock = Integer.parseInt(fila.get("stock"));
             GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-            jdbc.update(con -> {
-                java.sql.PreparedStatement ps = con.prepareStatement(
-                    "INSERT INTO productos (nombre, descripcion, precio, stock, categoria, emoji) VALUES (?, ?, ?, ?, ?, ?)",
-                    Statement.RETURN_GENERATED_KEYS);
-                ps.setString(1, nombre);
-                ps.setString(2, "Producto de prueba");
-                ps.setDouble(3, Double.parseDouble(fila.get("precio")));
-                ps.setInt(4, stock);
-                ps.setString(5, fila.get("categoría"));
-                ps.setString(6, fila.get("emoji"));
-                return ps;
-            }, keyHolder);
+            jdbc.update(
+                    con -> {
+                        java.sql.PreparedStatement ps = con.prepareStatement(
+                                "INSERT INTO productos (nombre, descripcion, precio, stock, categoria, emoji) VALUES (?, ?, ?, ?, ?, ?)",
+                                Statement.RETURN_GENERATED_KEYS);
+                        ps.setString(1, nombre);
+                        ps.setString(2, "Producto de prueba");
+                        ps.setDouble(3, Double.parseDouble(fila.get("precio")));
+                        ps.setInt(4, stock);
+                        ps.setString(5, fila.get("categoría"));
+                        ps.setString(6, fila.get("emoji"));
+                        return ps;
+                    },
+                    keyHolder);
             Long id = keyHolder.getKey().longValue();
 
             nombreAId.put(nombre, id);
@@ -569,8 +586,8 @@ public class CompraSteps {
     @Cuando("verifico disponibilidad para {int} unidades del producto {string}")
     public void verificarDisponibilidad(int cantidad, String nombre) throws Exception {
         Long id = idDe(nombre);
-        MvcResult result = mockMvc.perform(get("/api/productos/{id}/stock", id)
-                .param("cantidad", String.valueOf(cantidad)))
+        MvcResult result = mockMvc.perform(
+                        get("/api/productos/{id}/stock", id).param("cantidad", String.valueOf(cantidad)))
                 .andReturn();
         ultimaRespuestaStock = leerMapaJson(result.getResponse().getContentAsByteArray());
     }
@@ -680,16 +697,14 @@ public class CompraSteps {
 
     @Cuando("accedo al panel de admin")
     public void accesoPanelAdmin() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/admin/productos")
-                .header("Authorization", "Bearer " + token))
+        MvcResult result = mockMvc.perform(get("/api/admin/productos").header("Authorization", "Bearer " + token))
                 .andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
     }
 
     @Entonces("puedo ver la tabla de productos con stock actual")
     public void verTablaProductos() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/admin/productos")
-                .header("Authorization", "Bearer " + token))
+        MvcResult result = mockMvc.perform(get("/api/admin/productos").header("Authorization", "Bearer " + token))
                 .andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
         ultimosProductosAdmin = leerListaJson(result.getResponse().getContentAsByteArray());
@@ -701,9 +716,9 @@ public class CompraSteps {
         Long id = idDe(nombre);
         String json = "{\"stock\":" + stock + "}";
         MvcResult result = mockMvc.perform(patch("/api/admin/productos/{id}/stock", id)
-                .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json))
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
         ultimoStockAdmin = stock;
@@ -753,12 +768,12 @@ public class CompraSteps {
     // ═══════════════════ CATÁLOGO Y BÚSQUEDA ═══════════════════
 
     @Dado("que accedo a la vista de catálogo")
-    public void accesoVistaCatalogo() {
-    }
+    public void accesoVistaCatalogo() {}
 
     @Cuando("filtro por categoría {string}")
     public void filtrarPorCategoria(String categoria) throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/productos").param("categoria", categoria)).andReturn();
+        MvcResult result = mockMvc.perform(get("/api/productos").param("categoria", categoria))
+                .andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
         ultimosProductos = leerListaJson(result.getResponse().getContentAsByteArray());
     }
@@ -772,8 +787,9 @@ public class CompraSteps {
             String nombre = p.get("nombre").toString();
             double precio = ((Number) p.get("precio")).doubleValue();
             Map<String, String> esperado = esperados.stream()
-                .filter(e -> e.get("nombre").equals(nombre))
-                .findFirst().orElse(null);
+                    .filter(e -> e.get("nombre").equals(nombre))
+                    .findFirst()
+                    .orElse(null);
             Assertions.assertNotNull(esperado, "Producto inesperado: " + nombre);
             Assertions.assertEquals(Double.parseDouble(esperado.get("precio")), precio, 0.01);
         }
@@ -781,7 +797,8 @@ public class CompraSteps {
 
     @Cuando("busco {string}")
     public void buscar(String termino) throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/productos").param("buscar", termino)).andReturn();
+        MvcResult result =
+                mockMvc.perform(get("/api/productos").param("buscar", termino)).andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
         ultimosProductos = leerListaJson(result.getResponse().getContentAsByteArray());
     }
@@ -789,7 +806,7 @@ public class CompraSteps {
     @Entonces("aparece el producto {string}")
     public void apareceProducto(String nombre) {
         boolean found = ultimosProductos.stream()
-            .anyMatch(p -> nombre.equals(p.get("nombre").toString()));
+                .anyMatch(p -> nombre.equals(p.get("nombre").toString()));
         Assertions.assertTrue(found, "No aparece el producto: " + nombre);
     }
 
@@ -801,13 +818,11 @@ public class CompraSteps {
     @Entonces("aparecen los productos que contienen {string}:")
     public void productosContienen(String patron, DataTable dataTable) {
         List<Map<String, String>> esperados = dataTable.asMaps(String.class, String.class);
-        List<String> nombresActuales = ultimosProductos.stream()
-            .map(p -> p.get("nombre").toString())
-            .collect(Collectors.toList());
+        List<String> nombresActuales =
+                ultimosProductos.stream().map(p -> p.get("nombre").toString()).collect(Collectors.toList());
         Assertions.assertEquals(esperados.size(), ultimosProductos.size());
         for (Map<String, String> e : esperados) {
-            Assertions.assertTrue(nombresActuales.contains(e.get("nombre")),
-                "Falta: " + e.get("nombre"));
+            Assertions.assertTrue(nombresActuales.contains(e.get("nombre")), "Falta: " + e.get("nombre"));
         }
     }
 
@@ -833,9 +848,9 @@ public class CompraSteps {
         Assertions.assertNotNull(ultimoPedidoId);
         String json = "{\"estado\":\"" + estado + "\"}";
         MvcResult result = mockMvc.perform(patch("/api/admin/pedidos/{id}/estado", ultimoPedidoId)
-                .header("Authorization", "Bearer " + token)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json))
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
                 .andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
         ultimoPedido = leerMapaJson(result.getResponse().getContentAsByteArray());
@@ -849,14 +864,15 @@ public class CompraSteps {
     @Entonces("el cliente ve su pedido con estado {string}")
     public void clienteVePedido(String estado) throws Exception {
         String clientToken = tokenCliente();
-        MvcResult result = mockMvc.perform(get("/api/pedidos/mis-pedidos")
-                .header("Authorization", "Bearer " + clientToken))
+        MvcResult result = mockMvc.perform(
+                        get("/api/pedidos/mis-pedidos").header("Authorization", "Bearer " + clientToken))
                 .andReturn();
         Assertions.assertEquals(200, result.getResponse().getStatus());
         List<Map<String, Object>> pedidos = leerListaJson(result.getResponse().getContentAsByteArray());
         Map<String, Object> pedido = pedidos.stream()
-            .filter(p -> ((Number) p.get("id")).longValue() == ultimoPedidoId)
-            .findFirst().orElse(null);
+                .filter(p -> ((Number) p.get("id")).longValue() == ultimoPedidoId)
+                .findFirst()
+                .orElse(null);
         Assertions.assertNotNull(pedido, "El cliente no ve su pedido");
         Assertions.assertEquals(estado, pedido.get("estado").toString());
     }
@@ -864,12 +880,11 @@ public class CompraSteps {
     @Entonces("el pedido aparece en el historial de compras realizadas")
     public void pedidoEnHistorial() throws Exception {
         String clientToken = tokenCliente();
-        MvcResult result = mockMvc.perform(get("/api/pedidos/mis-pedidos")
-                .header("Authorization", "Bearer " + clientToken))
+        MvcResult result = mockMvc.perform(
+                        get("/api/pedidos/mis-pedidos").header("Authorization", "Bearer " + clientToken))
                 .andReturn();
         List<Map<String, Object>> pedidos = leerListaJson(result.getResponse().getContentAsByteArray());
-        boolean existe = pedidos.stream()
-            .anyMatch(p -> ((Number) p.get("id")).longValue() == ultimoPedidoId);
+        boolean existe = pedidos.stream().anyMatch(p -> ((Number) p.get("id")).longValue() == ultimoPedidoId);
         Assertions.assertTrue(existe, "El pedido no está en el historial");
     }
 
@@ -891,8 +906,8 @@ public class CompraSteps {
     public void stockRestaurado() {
         for (Long id : stockAlInicio.keySet()) {
             Producto p = productoRepo.findById(id).orElseThrow();
-            Assertions.assertEquals((int) stockAlInicio.get(id), p.getStock(),
-                "Stock no restaurado para producto " + id);
+            Assertions.assertEquals(
+                    (int) stockAlInicio.get(id), p.getStock(), "Stock no restaurado para producto " + id);
         }
     }
 
@@ -908,13 +923,15 @@ public class CompraSteps {
     @Entonces("se envía un email de confirmación a {string}")
     public void emailConfirmacion(String email) {
         Assertions.assertNotNull(ultimoPedido, "No hay pedido para notificar");
-        Assertions.assertEquals(email, ((Map<?, ?>) ultimoPedido.get("cliente")).get("email").toString());
+        Assertions.assertEquals(
+                email, ((Map<?, ?>) ultimoPedido.get("cliente")).get("email").toString());
     }
 
     @Entonces("se envía email a {string}")
     public void emailEnviado(String email) {
         Assertions.assertNotNull(ultimoPedido);
-        Assertions.assertEquals(email, ((Map<?, ?>) ultimoPedido.get("cliente")).get("email").toString());
+        Assertions.assertEquals(
+                email, ((Map<?, ?>) ultimoPedido.get("cliente")).get("email").toString());
     }
 
     @Entonces("el email contiene el número del pedido")
