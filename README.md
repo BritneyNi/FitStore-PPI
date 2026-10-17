@@ -1,5 +1,7 @@
 ﻿# FitStore — Tienda Online de Productos de Gym
 
+[![CI](https://github.com/BritneyNi/FitStore-PPI/actions/workflows/ci.yml/badge.svg)](https://github.com/BritneyNi/FitStore-PPI/actions/workflows/ci.yml)
+
 **Ingeniería de Software II · TdeA · Mayo 2026**
 
 Stack: HTML/CSS/JS vanilla · Spring Boot 3.5.7 · SQL Server · Redis · RabbitMQ · AWS
@@ -196,6 +198,8 @@ Ejecuta:
 |------|-------------|----------|
 | Backend (Java) | **Spotless** + palantir-java-format 2.80.0 | `mvnw.cmd spotless:apply` (formatea) · `mvnw.cmd spotless:check` (valida) |
 | Frontend (JS) | **ESLint 9** (flat config) | `cd frontend && npm install && npm run lint` |
+
+> **Integración continua:** `.github/workflows/ci.yml` ejecuta Spotless, las 18 pruebas (con SQL Server, Redis y RabbitMQ en contenedores) y ESLint en cada `push` y `pull request` a `main`.
 
 ---
 
