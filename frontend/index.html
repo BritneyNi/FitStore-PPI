@@ -74,7 +74,10 @@
           type="password"
           id="loginClave"
           placeholder="••••••••"
+          onkeydown="if (event.key === 'Enter') login()"   
+    
         >
+        <!--LOGIN MIGUEL-->
       </div>
 
       <button class="btn-primary btn-full" onclick="login()">
