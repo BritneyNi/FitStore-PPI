@@ -1197,3 +1197,15 @@ body {
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+.mostrar-clave { display: block; margin-bottom: 12px; font-size: 14px; cursor: pointer; }
+.mostrar-clave input { width: auto; margin-right: 6px; }
+
+.footer {
+  background: #111827;
+  color: white;
+  text-align: center;
+  padding: 24px 16px;
+  margin-top: 40px;
+}
+.footer-sub { color: #9ca3af; font-size: 14px; margin-top: 6px; }
