@@ -92,6 +92,11 @@ const IMAGENES = {
   "Creatina Monohidratada 300g": "img/suplementos/creatina.jpg",
   "Pre-Entreno X-Force": "img/suplementos/pre-entreno.jpg",
   "BCAA Aminoácidos 250g": "img/suplementos/aminoacidos.jpg",
+  "Mancuernas Ajustables 20kg": "img/equipos/mancuernas.jpg",
+  "Colchoneta Yoga Pro": "img/equipos/colchoneta.jpg",
+  "Cuerda para Saltar": "img/equipos/cuerda.jpg",
+  "Guantes de Gym": "img/equipos/guantes.jpg",
+  "Banda Elástica Set x3": "img/equipos/bandas.jpg",
 };
 
 async function cargarCatalogo(categoria, buscar) {
