@@ -216,7 +216,11 @@ function renderCarrito() {
   }
   cont.innerHTML = carrito.map(i => `
     <div class="carrito-item">
-      <span class="carrito-emoji">${i.emoji}</span>
+         <span class="carrito-emoji">
+     ${IMAGENES[i.nombre]
+       ? `<img class="carrito-img" src="${IMAGENES[i.nombre]}" alt="">`
+       : i.emoji}
+   </span>
       <div class="carrito-item-info">
         <span class="carrito-item-nombre">${i.nombre}${i.talla ? ' (Talla ' + i.talla + ')' : ''}</span>
         <span class="carrito-item-precio">$${formatPrecio(i.precio)} (subtotal: $${formatPrecio(i.precio * i.cantidad)})</span>

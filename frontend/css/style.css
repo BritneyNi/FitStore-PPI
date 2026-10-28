@@ -1225,3 +1225,11 @@ body {
   height: 100%;
   object-fit: cover;
 }
+
+.carrito-img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+}
