@@ -97,6 +97,9 @@ const IMAGENES = {
   "Cuerda para Saltar": "img/equipos/cuerda.jpg",
   "Guantes de Gym": "img/equipos/guantes.jpg",
   "Banda Elástica Set x3": "img/equipos/bandas.jpg",
+  "Camiseta Dry-Fit": "img/ropa/camiseta.jpg",
+  "Licra Deportiva": "img/ropa/licra.jpg",
+  "Tenis Deportivos": "img/ropa/tenis.jpg",
 };
 
 async function cargarCatalogo(categoria, buscar) {
