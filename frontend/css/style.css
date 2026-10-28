@@ -1218,3 +1218,10 @@ body {
   font-size: 14px;
   font-weight: 600;
 }
+
+/* Imagenes */
+.producto-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

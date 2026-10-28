@@ -86,6 +86,14 @@ function logout() {
 }
 
 // ── Catálogo (consume GET /api/productos) ────────────────────
+
+const IMAGENES = {
+  "Proteína Whey 1kg": "img/suplementos/proteina.jpg",
+  "Creatina Monohidratada 300g": "img/suplementos/creatina.jpg",
+  "Pre-Entreno X-Force": "img/suplementos/pre-entreno.jpg",
+  "BCAA Aminoácidos 250g": "img/suplementos/aminoacidos.jpg",
+};
+
 async function cargarCatalogo(categoria, buscar) {
   const grid = document.getElementById("gridProductos");
   grid.innerHTML = `<p class="empty-msg">Cargando productos...</p>`;
@@ -110,7 +118,11 @@ function renderCatalogo(lista) {
   }
   grid.innerHTML = lista.map(p => `
     <div class="producto-card ${p.stock === 0 ? 'sin-stock' : ''}">
-      <div class="producto-emoji">${p.emoji || '📦'}</div>
+      <div class="producto-emoji">
+  ${IMAGENES[p.nombre]
+    ? `<img class="producto-img" src="${IMAGENES[p.nombre]}" alt="${p.nombre}">`
+    : (p.emoji || '📦')}
+</div>
       <div class="producto-info">
         <span class="producto-categoria">${p.categoria}</span>
         <h3 class="producto-nombre">${p.nombre}</h3>
