@@ -4,7 +4,7 @@
 //  La capa HTTP vive en api.js y la persistencia en storage.js.
 // ============================================================
 
-/* exported mostrarVista, login, logout, filtrar, buscar,
+/* exported mostrarVista, login, registrar, logout, filtrar, buscar,
    agregarAlCarrito, toggleCarrito, cambiarCantidad, eliminarDelCarrito,
    confirmarCompra, actualizarStock, actualizarEstadoPedido, eliminarPedido */
 
@@ -62,6 +62,28 @@ async function login() {
     aplicarSesion(usuarioActual);
     mostrarVista("catalogo");
     mostrarToast(`¡Bienvenido, ${data.nombre}! 👋`);
+  } catch (e) {
+    errEl.textContent = e.message;
+  }
+}
+
+
+async function registrar() {
+  const nombre = document.getElementById("regNombre").value.trim();
+  const email  = document.getElementById("regEmail").value.trim();
+  const clave  = document.getElementById("regClave").value;
+  const errEl  = document.getElementById("registroError");
+  errEl.textContent = "";
+
+  try {
+    const data = await post("/auth/register", { nombre, email, clave });
+    token = data.token;
+    usuarioActual = { nombre: data.nombre, email: data.email, rol: data.rol };
+    Store.setToken(token);
+    Store.setUser(usuarioActual);
+    aplicarSesion(usuarioActual);
+    mostrarVista("catalogo");
+    mostrarToast(`¡Cuenta creada! Bienvenido, ${data.nombre} 🎉`);
   } catch (e) {
     errEl.textContent = e.message;
   }
