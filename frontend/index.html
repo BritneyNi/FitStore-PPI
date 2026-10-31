@@ -126,6 +126,11 @@
       <label>Contraseña</label>
       <input type="password" id="regClave" placeholder="••••••••">
     </div>
+    <label class="mostrar-clave">
+  <input type="checkbox"
+    onchange="document.getElementById('regClave').type = this.checked ? 'text' : 'password'">
+  Mostrar contraseña
+</label>
 
     <button class="btn-primary btn-full" onclick="registrar()">
       Registrarme
