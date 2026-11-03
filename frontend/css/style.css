@@ -20,9 +20,9 @@ body {
   line-height: 1.6;
 }
 
-/* ════════════════════════════════════════════════════════ */
+
 /* NAVBAR - Barra de navegación principal */
-/* ════════════════════════════════════════════════════════ */
+
 
 .navbar {
   background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
@@ -1233,3 +1233,22 @@ body {
   border-radius: 8px;
   display: block;
 }
+
+.btn-subir {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  background: #f97316;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-size: 22px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 90;
+}
+.btn-subir:hover { background: #111827; }
