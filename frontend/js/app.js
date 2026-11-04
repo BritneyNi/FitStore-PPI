@@ -233,7 +233,12 @@ function renderCarrito() {
   const btn    = document.getElementById("btnComprar");
 
   if (!carrito.length) {
-    cont.innerHTML = `<p class="empty-msg">Tu carrito está vacío.</p>`;
+        cont.innerHTML = `
+      <p class="empty-msg">Tu carrito está vacío. 🛒</p>
+      <button class="btn-primary btn-full" onclick="toggleCarrito(); mostrarVista('catalogo')">
+        Ir al catálogo
+      </button>
+    `;
     totalEl.textContent = "$0"; btn.disabled = true; return;
   }
   cont.innerHTML = carrito.map(i => `
