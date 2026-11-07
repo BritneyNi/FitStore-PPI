@@ -1,5 +1,10 @@
 name: CI
 
+# Secretos requeridos en el repositorio (Settings > Secrets and variables > Actions):
+#   DB_PASSWORD  -> clave del usuario sa de SQL Server (también la usa Spring Boot en CI)
+#   JWT_SECRET   -> clave de firma de los JWT (mínimo 32 caracteres)
+# No se escriben credenciales reales en este archivo.
+
 on:
   push:
     branches: [ main ]
@@ -17,7 +22,7 @@ jobs:
         image: mcr.microsoft.com/mssql/server:2022-latest
         env:
           ACCEPT_EULA: "Y"
-          MSSQL_SA_PASSWORD: "Fitstore2026!"
+          MSSQL_SA_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 1433:1433
       redis:
@@ -32,8 +37,8 @@ jobs:
     env:
       DB_URL: "jdbc:sqlserver://localhost:1433;databaseName=fitstore_db;encrypt=true;trustServerCertificate=true"
       DB_USERNAME: sa
-      DB_PASSWORD: "Fitstore2026!"
-      JWT_SECRET: "ci-secret-value-with-more-than-32-characters-1234567890"
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
       REDIS_HOST: localhost
       REDIS_PORT: "6379"
       RABBITMQ_HOST: localhost
@@ -52,10 +57,12 @@ jobs:
           cache: maven
 
       - name: Esperar SQL Server y crear la base de datos
+        env:
+          SA_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           for i in $(seq 1 30); do
             if docker exec ${{ job.services.sqlserver.id }} \
-              /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Fitstore2026!" -C -Q "SELECT 1" >/dev/null 2>&1; then
+              /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C -Q "SELECT 1" >/dev/null 2>&1; then
               echo "SQL Server listo."
               break
             fi
@@ -63,7 +70,7 @@ jobs:
             sleep 5
           done
           docker exec ${{ job.services.sqlserver.id }} \
-            /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Fitstore2026!" -C \
+            /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C \
             -Q "IF DB_ID('fitstore_db') IS NULL CREATE DATABASE fitstore_db"
 
       - name: Verificar formato (Spotless)
@@ -75,7 +82,7 @@ jobs:
         run: ./mvnw -B verify
 
   frontend:
-    name: Frontend (ESLint)
+    name: Frontend (ESLint + build)
     runs-on: ubuntu-latest
 
     steps:
@@ -95,3 +102,7 @@ jobs:
       - name: Análisis de código (ESLint)
         working-directory: frontend
         run: npm run lint
+
+      - name: Compilar frontend (Vite)
+        working-directory: frontend
+        run: npm run build
