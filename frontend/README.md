@@ -1,6 +1,6 @@
-# FitStore — Frontend
+# FitStore — Frontend (React + Vite)
 
-Interfaz web de la tienda **FitStore**, en **HTML, CSS y JavaScript vanilla** (sin frameworks ni build step). Consume la API REST del backend.
+Interfaz web de la tienda **FitStore**. Está construida con **React 18** y **Vite 5**, y consume la API REST del backend.
 
 ---
 
@@ -8,29 +8,44 @@ Interfaz web de la tienda **FitStore**, en **HTML, CSS y JavaScript vanilla** (s
 
 ```
 frontend/
-├── index.html            ← Única página (contenedor de todas las vistas)
-├── css/
-│   └── style.css         ← Estilos
-└── js/
-    ├── config.js         ← URL base de la API (leída de <meta name="api-base-url">)
-    ├── storage.js        ← Persistencia en localStorage (token, usuario, carrito)
-    ├── api.js            ← Capa HTTP: fetch + JWT + envelope + errores + 401
-    └── app.js            ← Vistas, estado de la interfaz y manejadores de eventos
+├── index.html                  ← Punto de entrada de Vite
+├── vite.config.js              ← Configuración del build (base relativa)
+├── src/
+│   ├── main.jsx                ← Providers + render de React
+│   ├── App.jsx                 ← Navegación y composición de vistas
+│   ├── config.js               ← URL base de la API (VITE_API_BASE_URL)
+│   ├── storage.js              ← Persistencia en localStorage
+│   ├── api.js                  ← Capa HTTP: fetch + JWT + envelope + errores + 401
+│   ├── context/
+│   │   ├── SessionContext.jsx  ← Sesión (token + usuario)
+│   │   ├── CartContext.jsx     ← Carrito con useReducer
+│   │   └── ToastContext.jsx    ← Avisos flotantes
+│   ├── hooks/
+│   │   ├── useProductos.js     ← Catálogo, filtros y búsqueda
+│   │   ├── usePedidos.js       ← Historial del cliente
+│   │   └── useAdminData.js     ← Inventario y pedidos del admin
+│   ├── components/             ← Navbar, tarjetas, carrito, modal de talla…
+│   ├── views/                  ← Catálogo, login, registro, pedidos y admin
+│   └── utils/                  ← Formato de precios, reducer y URLs de imágenes
+├── public/img/                 ← Imágenes de los productos (se sirven tal cual)
+├── css/style.css               ← Estilos
+└── eslint.config.mjs           ← Reglas de lint (ESLint 9)
 ```
 
-Las capas se cargan en orden en `index.html` (config → storage → api → app) y se comunican a través del namespace global `window.FitStore`. `app.js` **no** llama a `fetch` ni a `localStorage` directamente: usa `Api` y `Store`.
+Las capas de infraestructura (`config.js`, `storage.js`, `api.js`) se mantienen separadas del resto de la aplicación. Ningún componente llama a `fetch` ni a `localStorage` directamente: usan `Api` y `Storage`.
 
 ---
 
 ## Configuración
 
-La URL base de la API se define en el `<head>` de `index.html`, no en el código:
+La URL base de la API se lee de una variable de entorno de Vite:
 
-```html
-<meta name="api-base-url" content="http://localhost:8080/api">
+```bash
+# frontend/.env  (ignorado por Git)
+VITE_API_BASE_URL=http://localhost:8080/api
 ```
 
-`config.js` la lee de ahí. Para apuntar a otro servidor (por ejemplo, uno desplegado), basta con cambiar el `content` de esa etiqueta. Si se omite, el valor por defecto es `http://localhost:8080/api`.
+Hay una plantilla versionada en `frontend/.env.example`. Si la variable no existe, el valor por defecto es `http://localhost:8080/api`.
 
 ---
 
@@ -38,21 +53,20 @@ La URL base de la API se define en el `<head>` de `index.html`, no en el código
 
 El backend debe estar corriendo en `http://localhost:8080` (ver `backend/README.md`).
 
-**Opción A — abrir el archivo directamente**
-
-Abre `frontend/index.html` en el navegador. El backend permite el origen `null` en CORS para este caso.
-
-**Opción B — servidor estático** (recomendado)
-
 ```bash
-# Con Python
-python -m http.server 5500 --directory frontend
-
-# o con Node
-npx serve frontend -l 5500
+cd frontend
+npm install        # primera vez
+npm run dev        # desarrollo: http://localhost:5173
 ```
 
-Luego abre `http://localhost:5500` (origen `http://localhost:5500` ya está permitido en CORS).
+Para probar el build de producción:
+
+```bash
+npm run build      # genera frontend/dist/
+npm run preview    # sirve el build: http://localhost:4173
+```
+
+`vite.config.js` usa `base: "./"`, de modo que `dist/` puede publicarse en la raíz de un dominio o en una subcarpeta (S3, servidor estático, etc.) sin cambiar código.
 
 **Credenciales de prueba:**
 
@@ -63,28 +77,43 @@ Luego abre `http://localhost:5500` (origen `http://localhost:5500` ya está perm
 
 ---
 
-## Análisis de código (ESLint)
+## Estado y datos
 
-Análisis estático con **ESLint 9** (flat config) sobre el código de `js/`.
+- **Sesión** (`SessionContext`): guarda token y usuario en `localStorage`; expone `login`, `registrar` y `logout`.
+- **Carrito** (`CartContext` + `useReducer`): acciones `add`, `change`, `remove` y `clear`. El estado se persiste en `localStorage` y se identifican las líneas por producto + talla.
+- **Avisos** (`ToastContext`): mensajes de confirmación y error con la misma apariencia anterior.
+- **Datos de la API** (`hooks/`): cada hook maneja carga, error y recarga. `useProductos` aplica filtro por categoría o búsqueda por nombre.
+
+---
+
+## Seguridad en la interfaz
+
+- No se usa `innerHTML` ni `dangerouslySetInnerHTML`: React escapa todo el contenido.
+- Los eventos se manejan con `onClick` y props/closures, sin atributos `onclick` con datos incrustados.
+- La talla de la ropa se elige en un **modal** (no se usa `prompt()`).
+- La imagen de cada producto se toma de `imagenUrl`, el valor guardado en la base de datos. Las rutas relativas se resuelven con la base de Vite.
+
+---
+
+## Análisis de código (ESLint)
 
 ```bash
 cd frontend
-npm install     # primera vez (instala ESLint; node_modules/ está ignorado por Git)
-npm run lint    # analiza
-npm run lint:fix # corrige lo que sea automático
+npm run lint      # analiza
+npm run lint:fix  # corrige lo automático
 ```
 
-Reglas: las recomendadas de `@eslint/js` con los globals del navegador. Las funciones que se invocan desde atributos `onclick` en `index.html` se declaran con `/* exported … */` en `app.js`.
+Reglas: recomendadas de `@eslint/js`, `react/jsx-uses-vars` y las de `eslint-plugin-react-hooks` (reglas de hooks y dependencias).
 
 ---
 
 ## Cómo usa la API (`api.js`)
 
-`Api` expone `get`, `post`, `patch`, `del` y devuelve directamente el `data` del envelope del backend:
+`Api` expone `get`, `post`, `patch` y `del`, y devuelve directamente el `data` del envelope del backend:
 
 ```js
-const productos = await Api.get("/productos");          // → array (ya desenvuelto)
-const pedido    = await Api.post("/pedidos", { items }); // → objeto pedido
+const productos = await Api.get("/productos");           // → array
+const pedido    = await Api.post("/pedidos", { items });  // → objeto pedido
 ```
 
 Responsabilidades centralizadas:
@@ -92,17 +121,15 @@ Responsabilidades centralizadas:
 - **URL base** desde `config.js`.
 - **Token JWT** `Authorization: Bearer …` (desde `storage.js`).
 - **Envelope**: devuelve `json.data` si existe; si no, el JSON tal cual.
-- **Errores**: lanza un `Error` con `status` y `details` a partir de `{ error: { status, message, details } }`.
+- **Errores**: lanza un `ApiError` con `status` y `details` a partir de `{ error: { status, message, details } }`.
 - **401**: notifica mediante `Api.setOnUnauthorized(fn)` para cerrar sesión.
 
 ---
 
-## Flujo de vistas
-
-`app.js` maneja una SPA de una sola página con secciones mostradas/ocultas (`mostrarVista`):
+## Vistas
 
 - **Catálogo** — `GET /api/productos` con filtros por categoría y buscador.
-- **Carrito** — estado en `localStorage`; se vacía al confirmar.
+- **Carrito** — panel lateral; se vacía al confirmar la compra.
 - **Mis pedidos** — `GET /api/pedidos/mis-pedidos`.
 - **Admin** — `GET /api/admin/productos` y `/api/admin/pedidos`; actualiza stock y estados.
-- **Login** — `POST /api/auth/login`; guarda el token y el usuario en `localStorage`.
+- **Login / Registro** — `POST /api/auth/login` y `/api/auth/register`; guardan el token y el usuario en `localStorage`.
