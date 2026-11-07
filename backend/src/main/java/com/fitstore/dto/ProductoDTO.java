@@ -16,6 +16,7 @@ public class ProductoDTO {
     private Integer stock;
     private Producto.Categoria categoria;
     private String emoji;
+    private String imagenUrl;
 
     public static ProductoDTO from(Producto p) {
         return new ProductoDTO(
@@ -25,6 +26,7 @@ public class ProductoDTO {
                 p.getPrecio(),
                 p.getStock(),
                 p.getCategoria(),
-                p.getEmoji());
+                p.getEmoji(),
+                p.getImagenUrl());
     }
 }

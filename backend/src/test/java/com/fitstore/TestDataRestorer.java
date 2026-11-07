@@ -52,81 +52,106 @@ public class TestDataRestorer {
                         89900.0,
                         15,
                         Producto.Categoria.SUPLEMENTO,
-                        "🥛"),
+                        "🥛",
+                        "img/suplementos/proteina.jpg"),
                 build(
                         "Creatina Monohidratada 300g",
                         "Aumenta fuerza y rendimiento muscular.",
                         54900.0,
                         20,
                         Producto.Categoria.SUPLEMENTO,
-                        "💊"),
+                        "💊",
+                        "img/suplementos/creatina.jpg"),
                 build(
                         "Pre-Entreno X-Force",
                         "Máxima energía para entrenamientos intensos.",
                         69900.0,
                         8,
                         Producto.Categoria.SUPLEMENTO,
-                        "⚡"),
+                        "⚡",
+                        "img/suplementos/pre-entreno.jpg"),
                 build(
                         "BCAA Aminoácidos 250g",
                         "Recuperación muscular post-entrenamiento.",
                         64900.0,
                         0,
                         Producto.Categoria.SUPLEMENTO,
-                        "🔬"),
+                        "🔬",
+                        "img/suplementos/aminoacidos.jpg"),
                 build(
                         "Mancuernas Ajustables 20kg",
                         "Set ajustable de 2kg a 20kg. Acero recubierto.",
                         349900.0,
                         5,
                         Producto.Categoria.EQUIPO,
-                        "🏋️"),
+                        "🏋️",
+                        "img/equipos/mancuernas.jpg"),
                 build(
                         "Colchoneta Yoga Pro",
                         "Antideslizante 6mm. Ideal para yoga y pilates.",
                         79900.0,
                         12,
                         Producto.Categoria.EQUIPO,
-                        "🧘"),
+                        "🧘",
+                        "img/equipos/colchoneta.jpg"),
                 build(
                         "Cuerda para Saltar",
                         "Velocidad con rodamientos. Ajustable 3 metros.",
                         29900.0,
                         25,
                         Producto.Categoria.EQUIPO,
-                        "🪢"),
+                        "🪢",
+                        "img/equipos/cuerda.jpg"),
                 build(
                         "Guantes de Gym",
                         "Palma acolchada. Protección en levantamiento.",
                         34900.0,
                         22,
                         Producto.Categoria.EQUIPO,
-                        "🧤"),
+                        "🧤",
+                        "img/equipos/guantes.jpg"),
                 build(
                         "Banda Elástica Set x3",
                         "Resistencia ligera, media y fuerte.",
                         39900.0,
                         17,
                         Producto.Categoria.EQUIPO,
-                        "🎽"),
+                        "🎽",
+                        "img/equipos/bandas.jpg"),
                 build(
                         "Camiseta Dry-Fit",
                         "Tela transpirable. Elimina la humedad.",
                         45900.0,
                         30,
                         Producto.Categoria.ROPA,
-                        "👕"),
-                build("Licra Deportiva", "Compresión con tejido elástico.", 59900.0, 18, Producto.Categoria.ROPA, "🩱"),
+                        "👕",
+                        "img/ropa/camiseta.jpg"),
+                build(
+                        "Licra Deportiva",
+                        "Compresión con tejido elástico.",
+                        59900.0,
+                        18,
+                        Producto.Categoria.ROPA,
+                        "🩱",
+                        "img/ropa/licra.jpg"),
                 build(
                         "Tenis Deportivos",
                         "Suela antideslizante y soporte de tobillo.",
                         189900.0,
                         10,
                         Producto.Categoria.ROPA,
-                        "👟"));
+                        "👟",
+                        "img/ropa/tenis.jpg"));
     }
 
-    private Producto build(String nombre, String desc, Double precio, int stock, Producto.Categoria cat, String emoji) {
+    private Producto build(
+            String nombre,
+            String desc,
+            Double precio,
+            int stock,
+            Producto.Categoria cat,
+            String emoji,
+            String imagenUrl) {
         Producto p = new Producto();
         p.setNombre(nombre);
         p.setDescripcion(desc);
@@ -134,6 +159,7 @@ public class TestDataRestorer {
         p.setStock(stock);
         p.setCategoria(cat);
         p.setEmoji(emoji);
+        p.setImagenUrl(imagenUrl);
         return p;
     }
 }

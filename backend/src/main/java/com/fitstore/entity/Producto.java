@@ -34,6 +34,11 @@ public class Producto {
 
     private String emoji;
 
+    // URL de la imagen del producto. Se guarda en la base de datos para que
+    // la interfaz no tenga que adivinar la imagen a partir del nombre.
+    @Column(name = "imagen_url", length = 500)
+    private String imagenUrl;
+
     public enum Categoria {
         SUPLEMENTO,
         EQUIPO,
