@@ -41,6 +41,15 @@ backend/target/
 # Dependencias de Node (frontend) — no versionar
 node_modules/
 
+# Build del frontend (Vite) — no versionar
+frontend/dist/
+dist/
+
+# Variables de entorno locales — no versionar (las plantillas si)
+.env
+.env.*
+!.env.example
+
 # Logs de verificacion/build sueltos
 verify-*.log
 *.err
