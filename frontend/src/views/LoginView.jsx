@@ -19,7 +19,7 @@ export default function LoginView({ onIngresar, onIrRegistro }) {
     try {
       const usuario = await login(email.trim(), clave.trim());
       mostrarToast(`¡Bienvenido, ${usuario.nombre}! 👋`);
-      onIngresar();
+      onIngresar(usuario);
     } catch (e) {
       setError(e.message);
     } finally {

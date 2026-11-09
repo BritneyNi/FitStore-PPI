@@ -14,6 +14,7 @@ import CatalogoView from "./views/CatalogoView";
 import LoginView from "./views/LoginView";
 import MisPedidosView from "./views/MisPedidosView";
 import RegistroView from "./views/RegistroView";
+import { esAdmin } from "./utils/roles";
 
 export default function App() {
   const { usuario, logout } = useSession();
@@ -45,7 +46,7 @@ export default function App() {
   }, [logout, vaciar, mostrarToast]);
 
   useEffect(() => {
-    if (usuario && vista === "login") setVista("catalogo");
+    if (usuario && vista === "login") setVista(esAdmin(usuario) ? "admin" : "catalogo");
   }, [usuario, vista]);
 
   const navegar = useCallback(
@@ -111,7 +112,10 @@ export default function App() {
       )}
 
       {vista === "login" && (
-        <LoginView onIngresar={() => setVista("catalogo")} onIrRegistro={() => setVista("registro")} />
+        <LoginView
+          onIngresar={(usuario) => setVista(esAdmin(usuario) ? "admin" : "catalogo")}
+          onIrRegistro={() => setVista("registro")}
+        />
       )}
 
       {vista === "registro" && (
