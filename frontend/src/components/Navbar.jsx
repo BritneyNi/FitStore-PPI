@@ -1,9 +1,11 @@
 import { useCart } from "../context/CartContext";
 import { useSession } from "../context/SessionContext";
+import { esPersonal } from "../utils/roles";
 
 export default function Navbar({ vista, onNavegar, onAbrirCarrito, onSalir }) {
   const { usuario } = useSession();
   const { cantidad } = useCart();
+  const personal = esPersonal(usuario);
 
   return (
     <nav className="navbar">
@@ -21,9 +23,11 @@ export default function Navbar({ vista, onNavegar, onAbrirCarrito, onSalir }) {
           Catalogo
         </button>
 
-        <button type="button" className="nav-btn" onClick={() => onNavegar("mis-pedidos")}>
-          Mis Pedidos
-        </button>
+        {!personal && (
+          <button type="button" className="nav-btn" onClick={() => onNavegar("mis-pedidos")}>
+            Mis Pedidos
+          </button>
+        )}
 
         {usuario?.rol === "ADMIN" && (
           <button type="button" className="nav-btn admin-btn" onClick={() => onNavegar("admin")}>
@@ -33,9 +37,11 @@ export default function Navbar({ vista, onNavegar, onAbrirCarrito, onSalir }) {
       </div>
 
       <div className="nav-right">
-        <button type="button" className="carrito-btn" onClick={onAbrirCarrito}>
-          🛒 <span id="carritoCount">{cantidad}</span>
-        </button>
+        {!personal && (
+          <button type="button" className="carrito-btn" onClick={onAbrirCarrito}>
+            🛒 <span id="carritoCount">{cantidad}</span>
+          </button>
+        )}
 
         {usuario ? (
           <div id="userInfo" className="user-info">
