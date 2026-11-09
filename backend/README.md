@@ -46,7 +46,7 @@ Si falta una variable obligatoria (p. ej. `JWT_SECRET`), la aplicación **falla 
 | `REDIS_HOST` / `REDIS_PORT` | `localhost` / `6380` | No |
 | `RABBITMQ_HOST` / `RABBITMQ_PORT` | `localhost` / `5672` | No |
 | `RABBITMQ_USER` / `RABBITMQ_PASSWORD` | `guest` / `guest` | No |
-| `CORS_ORIGINS` | `http://localhost:3000,http://127.0.0.1:5500,http://localhost:5500,null` | No |
+| `CORS_ORIGINS` | `http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173` | No |
 | `LOG_LEVEL` | `INFO` | No |
 
 ---
@@ -157,6 +157,8 @@ Todas las respuestas de éxito tienen la forma:
 | GET    | `/api/productos/{id}` | Obtener uno | No |
 | GET    | `/api/productos/{id}/stock?cantidad=2` | Verificar stock en caché (RNF-01) | No |
 
+> Cada producto incluye `imagenUrl`, la ruta de su imagen guardada en la base de datos (columna `imagen_url`). El frontend usa ese valor para renderizar la imagen; si está vacío, muestra el emoji del producto.
+
 **Pedidos** — `/api/pedidos`
 
 | Método | Endpoint | Descripción | Auth |
@@ -199,7 +201,7 @@ curl -X POST http://localhost:8080/api/auth/login \
 ## Arquitectura por capas
 
 ```
-controller/    → REST: recibe/valida, envuelve en ApiResponse, mapea a DTO
+controller/    → REST: un controlador por recurso (Auth, Producto, Pedido, AdminProducto, AdminPedido)
 service/       → Reglas de negocio (AuthService, ProductoService, OrderService, NotificationService)
 repository/    → Persistencia JPA sobre SQL Server
 entity/        → Modelo (Producto, Cliente, Pedido, ItemPedido)
@@ -216,4 +218,4 @@ config/        → SecurityConfig (JWT+CORS), JwtUtil, InfraConfig (Redis/Rabbit
 | Producer-Consumer | `NotificationService` | Emails asíncronos con RabbitMQ |
 | Degradación grácil | `ProductoService` / `NotificationService` | Si Redis o RabbitMQ caen, la tienda sigue operando |
 | Facade / Transacción | `OrderService` | Coordina el flujo de compra ACID |
-| DTO / Envelope | `Controllers` + `ApiResponse` | No expone entidades ni detalles internos |
+| DTO / Envelope | `dto/response` + controladores | No expone detalles internos y unifica el contrato |
