@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import Api from "./api";
+import Storage from "./storage";
 import CartPanel from "./components/CartPanel";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
@@ -14,14 +15,28 @@ import CatalogoView from "./views/CatalogoView";
 import LoginView from "./views/LoginView";
 import MisPedidosView from "./views/MisPedidosView";
 import RegistroView from "./views/RegistroView";
-import { esAdmin } from "./utils/roles";
+import { esAdmin, esPersonal } from "./utils/roles";
+
+function vistaInicial(usuario) {
+  const guardada = Storage.getVista();
+
+  if (!usuario) {
+    return guardada === "login" || guardada === "registro" ? guardada : "catalogo";
+  }
+
+  if (esAdmin(usuario)) {
+    return guardada === "admin" ? "admin" : "catalogo";
+  }
+
+  return guardada === "mis-pedidos" && !esPersonal(usuario) ? "mis-pedidos" : "catalogo";
+}
 
 export default function App() {
   const { usuario, logout } = useSession();
   const { agregar, vaciar } = useCart();
   const { mostrarToast } = useToast();
 
-  const [vista, setVista] = useState("catalogo");
+  const [vista, setVista] = useState(() => vistaInicial(usuario));
   const [carritoAbierto, setCarritoAbierto] = useState(false);
   const [productoTalla, setProductoTalla] = useState(null);
   const [filtro, setFiltro] = useState("todos");
@@ -48,6 +63,10 @@ export default function App() {
   useEffect(() => {
     if (usuario && vista === "login") setVista(esAdmin(usuario) ? "admin" : "catalogo");
   }, [usuario, vista]);
+
+  useEffect(() => {
+    Storage.setVista(vista);
+  }, [vista]);
 
   const navegar = useCallback(
     (destino) => {
