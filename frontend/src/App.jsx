@@ -69,14 +69,15 @@ export default function App() {
   }, [vista]);
 
   const navegar = useCallback(
-    (destino) => {
-      if (destino === "login" && usuario) {
-        setVista("catalogo");
-        return;
-      }
-      setVista(destino);
-    },
-    [usuario]
+  (destino) => {
+    if (destino === "login" && usuario) {
+      setVista("catalogo");
+      return;
+    }
+    if (destino === "mis-pedidos" && esPersonal(usuario)) return;
+    setVista(destino);
+  },
+  [usuario]
   );
 
   const agregarAlCarrito = useCallback(
@@ -84,6 +85,16 @@ export default function App() {
       if (!usuario) {
         mostrarToast("⚠️ Debes iniciar sesión para comprar.");
         setVista("login");
+        return;
+      }
+
+      if (esPersonal(usuario)) {
+        mostrarToast("⚠️ El personal de la tienda no puede comprar.");
+        return;
+      }
+      
+      if (esPersonal(usuario)) {
+        mostrarToast("⚠️ El personal de la tienda no puede comprar.");
         return;
       }
 
