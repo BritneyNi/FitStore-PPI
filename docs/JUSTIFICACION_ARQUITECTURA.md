@@ -84,6 +84,8 @@ Cada archivo tiene una responsabilidad clara, es más fácil de leer y de probar
 
 La imagen ya no se deduce del nombre en el frontend. La tabla `productos` tiene la columna `imagen_url`, la entidad `Producto` expone `imagenUrl` y la API devuelve ese campo. El frontend solo construye la ruta final con la base de Vite y, si no hay imagen, muestra el emoji del producto.
 
+`DataSeeder` conserva un mapa `nombre → imagen` (`IMAGENES_DEMO`) únicamente para dos tareas de siembra: crear los productos de demostración y completar la columna `imagen_url` en registros creados antes de que existiera esa columna. Esa completación es una migración de datos de una sola vez: si el producto ya tiene URL, no se modifica. En tiempo de ejecución, la API y el frontend **siempre** leen `imagen_url` desde la base de datos; el mapa no se consulta para resolver imágenes de la tienda.
+
 ## 9. Decisiones de seguridad
 
 - Se eliminó `innerHTML` y no se usa `dangerouslySetInnerHTML`; React escapa el contenido.
