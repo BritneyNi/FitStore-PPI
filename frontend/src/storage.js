@@ -9,6 +9,7 @@ const KEYS = {
   token: "fitstore_token",
   user: "fitstore_user",
   cart: "fitstore_carrito",
+  vista: "fitstore_vista",
 };
 
 function leerJSON(key, fallback) {
@@ -39,6 +40,13 @@ export const Storage = {
   },
   setCart(cart) {
     localStorage.setItem(KEYS.cart, JSON.stringify(cart));
+  },
+  getVista() {
+    return localStorage.getItem(KEYS.vista);
+  },
+  setVista(vista) {
+    if (vista) localStorage.setItem(KEYS.vista, vista);
+    else localStorage.removeItem(KEYS.vista);
   },
   clear() {
     localStorage.removeItem(KEYS.token);

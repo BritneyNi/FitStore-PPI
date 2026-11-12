@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import Api from "./api";
+import Storage from "./storage";
 import CartPanel from "./components/CartPanel";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
@@ -14,13 +15,28 @@ import CatalogoView from "./views/CatalogoView";
 import LoginView from "./views/LoginView";
 import MisPedidosView from "./views/MisPedidosView";
 import RegistroView from "./views/RegistroView";
+import { esAdmin, esPersonal } from "./utils/roles";
+
+function vistaInicial(usuario) {
+  const guardada = Storage.getVista();
+
+  if (!usuario) {
+    return guardada === "login" || guardada === "registro" ? guardada : "catalogo";
+  }
+
+  if (esAdmin(usuario)) {
+    return guardada === "admin" ? "admin" : "catalogo";
+  }
+
+  return guardada === "mis-pedidos" && !esPersonal(usuario) ? "mis-pedidos" : "catalogo";
+}
 
 export default function App() {
   const { usuario, logout } = useSession();
   const { agregar, vaciar } = useCart();
   const { mostrarToast } = useToast();
 
-  const [vista, setVista] = useState("catalogo");
+  const [vista, setVista] = useState(() => vistaInicial(usuario));
   const [carritoAbierto, setCarritoAbierto] = useState(false);
   const [productoTalla, setProductoTalla] = useState(null);
   const [filtro, setFiltro] = useState("todos");
@@ -45,18 +61,23 @@ export default function App() {
   }, [logout, vaciar, mostrarToast]);
 
   useEffect(() => {
-    if (usuario && vista === "login") setVista("catalogo");
+    if (usuario && vista === "login") setVista(esAdmin(usuario) ? "admin" : "catalogo");
   }, [usuario, vista]);
 
+  useEffect(() => {
+    Storage.setVista(vista);
+  }, [vista]);
+
   const navegar = useCallback(
-    (destino) => {
-      if (destino === "login" && usuario) {
-        setVista("catalogo");
-        return;
-      }
-      setVista(destino);
-    },
-    [usuario]
+  (destino) => {
+    if (destino === "login" && usuario) {
+      setVista("catalogo");
+      return;
+    }
+    if (destino === "mis-pedidos" && esPersonal(usuario)) return;
+    setVista(destino);
+  },
+  [usuario]
   );
 
   const agregarAlCarrito = useCallback(
@@ -64,6 +85,16 @@ export default function App() {
       if (!usuario) {
         mostrarToast("⚠️ Debes iniciar sesión para comprar.");
         setVista("login");
+        return;
+      }
+
+      if (esPersonal(usuario)) {
+        mostrarToast("⚠️ El personal de la tienda no puede comprar.");
+        return;
+      }
+      
+      if (esPersonal(usuario)) {
+        mostrarToast("⚠️ El personal de la tienda no puede comprar.");
         return;
       }
 
@@ -111,7 +142,10 @@ export default function App() {
       )}
 
       {vista === "login" && (
-        <LoginView onIngresar={() => setVista("catalogo")} onIrRegistro={() => setVista("registro")} />
+        <LoginView
+          onIngresar={(usuario) => setVista(esAdmin(usuario) ? "admin" : "catalogo")}
+          onIrRegistro={() => setVista("registro")}
+        />
       )}
 
       {vista === "registro" && (
