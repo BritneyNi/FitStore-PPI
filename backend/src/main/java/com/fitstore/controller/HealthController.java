@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 /**
  * Health check de demostración: reporta el estado de cada dependencia
  * (SQL Server, Redis, RabbitMQ) sin romperse si alguna está caída.
