@@ -19,7 +19,7 @@ export default function LoginView({ onIngresar, onIrRegistro }) {
     try {
       const usuario = await login(email.trim(), clave.trim());
       mostrarToast(`¡Bienvenido, ${usuario.nombre}! 👋`);
-      onIngresar();
+      onIngresar(usuario);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -84,12 +84,6 @@ export default function LoginView({ onIngresar, onIrRegistro }) {
           >
             Regístrate
           </a>
-        </p>
-
-        <p className="auth-hint">
-          Cliente: <code>juan@email.com / clave123</code>
-          <br />
-          Admin: <code>admin@fitstore.com / admin123</code>
         </p>
       </form>
     </div>

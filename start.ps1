@@ -66,6 +66,10 @@ if ($LASTEXITCODE -eq 0) { $dockerOk = $true }
 
 if (-not $dockerOk) {
     $dd = "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+    if (-not (Test-Path $dd)) {
+        $ddUsuario = Join-Path $env:LOCALAPPDATA "Programs\DockerDesktop\Docker Desktop.exe"
+        if (Test-Path $ddUsuario) { $dd = $ddUsuario }
+    }
     if (Test-Path $dd) {
         Warn "Docker no esta corriendo. Iniciando Docker Desktop (puede tardar ~1 min)..."
         Start-Process $dd | Out-Null

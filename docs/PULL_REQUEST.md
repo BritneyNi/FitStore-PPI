@@ -22,6 +22,9 @@ RabbitMQ, Spotless, Cucumber y CI).
 - **Capas conservadas.** `config.js`, `storage.js` y `api.js` siguen separados
   del resto de la aplicación; ningún componente usa `fetch` o `localStorage`
   directamente.
+- **Lockfile reproducible.** `frontend/package-lock.json` se regeneró con el
+  registro oficial (`registry.npmjs.org`); ya no contiene referencias al mirror
+  `registry.npmmirror.com`, así que `npm ci` no depende de una red alternativa.
 - **Talla sin `prompt()`.** Los productos de ropa abren un modal para elegir
   talla (o continuar sin talla).
 - **Imagen desde la base de datos.** Se agrega `imagen_url` a la tabla de
@@ -64,6 +67,18 @@ ropa (modal de talla) y otros productos; cambiar cantidades y confirmar compra;
 login/registro; "Mis pedidos"; panel de administrador (stock y estado); cierre
 de sesión por 401.
 
+### Verificación realizada
+
+- Frontend: `npm ci`, `npm run lint` y `npm run build` correctos.
+- `frontend/package-lock.json` sin referencias a `registry.npmmirror.com`
+  (310 entradas resueltas contra `registry.npmjs.org`).
+- Backend: `./mvnw -B -DskipTests compile` y `./mvnw -B spotless:check`
+  correctos; `./mvnw -B verify` con SQL Server, Redis y RabbitMQ activos:
+  **18 pruebas, 0 fallos**.
+- CI revisada: ejecuta `npm ci`, `npm run lint` y `npm run build` del
+  frontend, y usa `secrets.DB_PASSWORD` y `secrets.JWT_SECRET` sin credenciales
+  en claro.
+
 ### Checklist de las 14 observaciones
 
 - [x] 1. Migrar el frontend a React + Vite.
@@ -91,5 +106,7 @@ de sesión por 401.
 - Definir el correo personal de los commits con
   `git config user.email "MI_CORREO_PERSONAL"` (no se modificó la
   configuración global).
-- Ejecutar `./mvnw verify` con SQL Server, Redis y RabbitMQ activos para
-  completar la suite de Cucumber.
+- Subir la rama `feature/apoyo-frontend` y abrir el PR contra `main`; no
+  fusionarlo todavía.
+- Rotar la contraseña antigua de la base de datos que quedó en el historial
+  previo de Git; el historial no se reescribió.
