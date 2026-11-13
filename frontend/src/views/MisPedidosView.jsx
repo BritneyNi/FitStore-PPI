@@ -1,8 +1,28 @@
+import { useState } from "react";
+import Api from "../api";
+import { useToast } from "../context/ToastContext";
 import { usePedidos } from "../hooks/usePedidos";
 import { claseEstado, formatPrecio } from "../utils/format";
 
 export default function MisPedidosView() {
-  const { pedidos, cargando, error } = usePedidos(true);
+  const { pedidos, cargando, error, recargar } = usePedidos(true);
+  const { mostrarToast } = useToast();
+  const [cancelando, setCancelando] = useState(null);
+
+  async function cancelarPedido(id) {
+    if (!window.confirm(`¿Seguro que quieres cancelar el pedido #${id}?`)) return;
+
+    setCancelando(id);
+    try {
+      await Api.patch(`/pedidos/${id}/cancelar`);
+      mostrarToast(`Pedido #${id} cancelado`);
+      recargar();
+    } catch (err) {
+      mostrarToast(err.message || "No se pudo cancelar el pedido");
+    } finally {
+      setCancelando(null);
+    }
+  }
 
   return (
     <div id="vista-mis-pedidos" className="vista">
@@ -41,6 +61,19 @@ export default function MisPedidosView() {
               <div className="pedido-total">
                 Total: <strong>${formatPrecio(pedido.total)}</strong>
               </div>
+
+              {pedido.estado === "CONFIRMADO" && (
+                <div className="pedido-acciones">
+                  <button
+                    type="button"
+                    className="btn-cancelar-pedido"
+                    disabled={cancelando === pedido.id}
+                    onClick={() => cancelarPedido(pedido.id)}
+                  >
+                    {cancelando === pedido.id ? "Cancelando..." : "Cancelar pedido"}
+                  </button>
+                </div>
+              )}
             </div>
           ))
         )}
