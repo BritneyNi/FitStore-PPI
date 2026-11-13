@@ -110,6 +110,30 @@ public class OrderService {
         return pedidoRepo.save(pedido);
     }
 
+    // El cliente solo puede cancelar sus propios pedidos y solo mientras
+    // no hayan salido a entrega (estado CONFIRMADO).
+    @Transactional
+    public Pedido cancelarPedidoCliente(Long pedidoId, String emailCliente) {
+        Pedido pedido = pedidoRepo
+                .findById(pedidoId)
+                .orElseThrow(() -> new FitStoreException("Pedido no encontrado: " + pedidoId));
+
+        if (!pedido.getCliente().getEmail().equals(emailCliente)) {
+            throw new FitStoreException("No puedes cancelar un pedido de otro cliente");
+        }
+        if (pedido.getEstado() != Pedido.Estado.CONFIRMADO) {
+            throw new FitStoreException("Solo se pueden cancelar pedidos que aún no han sido enviados");
+        }
+
+        for (ItemPedido item : pedido.getItems()) {
+            productoService.restaurarStock(item.getProducto().getId(), item.getCantidad());
+        }
+
+        pedido.setEstado(Pedido.Estado.CANCELADO);
+        log.info("[OrderService] Pedido #{} cancelado por el cliente {}", pedidoId, emailCliente);
+        return pedidoRepo.save(pedido);
+    }
+
     @Transactional
     public void eliminarPedido(Long pedidoId) {
         Pedido pedido = pedidoRepo
