@@ -9,6 +9,8 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,5 +41,10 @@ public class PedidoController {
             @RequestParam(required = false) Integer limit) {
 
         return Paginacion.de(orderService.obtenerPedidosCliente(auth.getName()), page, limit);
+    }
+
+    @PatchMapping("/{id}/cancelar")
+    public ApiResponse<Pedido> cancelar(@PathVariable Long id, Authentication auth) {
+        return ApiResponse.of(orderService.cancelarPedidoCliente(id, auth.getName()));
     }
 }

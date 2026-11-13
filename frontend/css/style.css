@@ -1321,6 +1321,32 @@ body {
   flex-basis: 100%;
 }
 
+.pedido-acciones {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.btn-cancelar-pedido {
+  padding: 8px 16px;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  background: #fff;
+  color: #ef4444;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-cancelar-pedido:hover:not(:disabled) {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-cancelar-pedido:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .opciones-catalogo {
   display: flex;
   gap: 16px;
