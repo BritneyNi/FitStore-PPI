@@ -14,6 +14,7 @@ import AdminView from "./views/AdminView";
 import CatalogoView from "./views/CatalogoView";
 import LoginView from "./views/LoginView";
 import MisPedidosView from "./views/MisPedidosView";
+import PerfilView from "./views/PerfilView";
 import RegistroView from "./views/RegistroView";
 import { esAdmin, esPersonal } from "./utils/roles";
 
@@ -153,6 +154,8 @@ export default function App() {
       )}
 
       {vista === "mis-pedidos" && <MisPedidosView />}
+
+      {vista === "perfil" && usuario && <PerfilView />}
 
       {vista === "admin" && <AdminView />}
 

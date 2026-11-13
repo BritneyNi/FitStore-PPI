@@ -53,4 +53,22 @@ public class AuthService {
                 "email", email,
                 "rol", "CLIENTE");
     }
+
+    public void cambiarClave(String email, String claveActual, String claveNueva) {
+        Cliente cliente =
+                clienteRepo.findByEmail(email).orElseThrow(() -> new FitStoreException("Usuario no encontrado"));
+
+        if (claveActual == null || !passwordEncoder.matches(claveActual, cliente.getClave())) {
+            throw new FitStoreException("La contraseña actual no es correcta");
+        }
+        if (claveNueva == null || claveNueva.length() < 6) {
+            throw new FitStoreException("La nueva contraseña debe tener al menos 6 caracteres");
+        }
+        if (claveNueva.equals(claveActual)) {
+            throw new FitStoreException("La nueva contraseña debe ser diferente a la actual");
+        }
+
+        cliente.setClave(passwordEncoder.encode(claveNueva));
+        clienteRepo.save(cliente);
+    }
 }
