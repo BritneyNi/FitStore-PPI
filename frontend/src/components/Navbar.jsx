@@ -45,7 +45,15 @@ export default function Navbar({ vista, onNavegar, onAbrirCarrito, onSalir }) {
 
         {usuario ? (
           <div id="userInfo" className="user-info">
-            <span id="userName">{usuario.nombre}</span>
+            <button
+              type="button"
+              id="userName"
+              className={`nav-btn ${vista === "perfil" ? "active" : ""}`}
+              title="Mi perfil"
+              onClick={() => onNavegar("perfil")}
+            >
+              {usuario.nombre}
+            </button>
             <button type="button" className="btn-logout" onClick={onSalir}>
               Salir
             </button>
