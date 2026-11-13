@@ -1320,3 +1320,24 @@ body {
 .talla-sin {
   flex-basis: 100%;
 }
+
+.opciones-catalogo {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.orden-select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.solo-disponibles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
